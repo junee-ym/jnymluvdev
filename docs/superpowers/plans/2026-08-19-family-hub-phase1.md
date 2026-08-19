@@ -342,6 +342,7 @@ $$;
 
 -- t_user
 create policy "가족 전체 열람" on public.t_user for select using (auth.uid() is not null);
+create policy "본인 초대 수락시 가입" on public.t_user for insert with check (user_id = auth.uid());
 create policy "본인 정보만 수정" on public.t_user for update using (user_id = auth.uid());
 
 -- t_invite
