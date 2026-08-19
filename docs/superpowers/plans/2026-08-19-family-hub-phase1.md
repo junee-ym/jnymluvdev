@@ -2270,7 +2270,6 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
 
   const initialState: PhotoFormState = { error: null }
-  const [, saveMetaAction] = useActionState(savePhotoMeta, initialState)
   const [updateState, updateFormAction, updatePending] = useActionState(updatePhoto, initialState)
   const [deleteState, deleteFormAction, deletePending] = useActionState(deletePhoto, initialState)
 
@@ -2302,21 +2301,40 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
     const supabase = createClient()
     const today = new Date().toISOString().slice(0, 10)
 
+    let succeeded = 0
+    let failed = 0
+
     for (const file of Array.from(files)) {
       const path = `${profile.userId}/${crypto.randomUUID()}-${file.name}`
       const { error: uploadError } = await supabase.storage.from('photos').upload(path, file)
       if (uploadError) {
-        showToast('사진 업로드에 실패했어요')
+        failed++
         continue
       }
       const formData = new FormData()
       formData.set('path', path)
       formData.set('date', today)
-      await saveMetaAction(formData)
+      // savePhotoMeta는 'use server' 함수이므로 이벤트 핸들러에서 직접 호출해
+      // 반환값을 그대로 받을 수 있다 (useActionState의 dispatch를 거치지 않음 —
+      // 그 dispatch는 호출 직후 결과를 안전하게 읽을 방법이 없다는 게 Task 20
+      // 리뷰에서 드러났다: 업로드가 storage에는 성공했는데 메타데이터 저장은
+      // 실패해도 항상 "추가했어요" 토스트가 떴다).
+      const result = await savePhotoMeta({ error: null }, formData)
+      if (result.error) {
+        failed++
+      } else {
+        succeeded++
+      }
     }
 
     setUploading(false)
-    showToast('사진을 추가했어요')
+    if (failed === 0) {
+      showToast('사진을 추가했어요')
+    } else if (succeeded === 0) {
+      showToast('사진 업로드에 실패했어요')
+    } else {
+      showToast(`사진 ${succeeded}장을 추가했어요 (${failed}장 실패)`)
+    }
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
