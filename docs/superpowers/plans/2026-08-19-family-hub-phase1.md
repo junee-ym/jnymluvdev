@@ -149,7 +149,7 @@ git commit -m "style: port design tokens and component CSS from prototype"
 - Create: `src/lib/types.ts`
 - Delete: `src/lib/supabase.ts`
 - Delete: `src/components/connection-check.tsx`
-- Modify: `src/app/page.tsx` (임시로 비워두고, Task 21에서 실제 대시보드로 교체)
+- Delete: `src/app/page.tsx` (대시보드는 Task 21에서 `src/app/(family)/page.tsx`로 새로 생성됨 — Task 15의 보호 레이아웃이 `(family)` 라우트 그룹만 감싸므로, 최상위 `src/app/page.tsx`에 두면 사이드바/상단바 없이 렌더링된다)
 
 **Interfaces:**
 - Produces: `createClient()` (browser, `src/lib/supabase/client.ts`), `createClient()` (server, async, `src/lib/supabase/server.ts`), `createAdminClient()` (`src/lib/supabase/admin.ts`), `Role`/`Profile`/`CalendarEvent`/`Photo` 타입 (`src/lib/types.ts`)
@@ -254,17 +254,10 @@ export function createAdminClient() {
 - [ ] **Step 5: 옛 부트스트랩 파일 제거**
 
 ```bash
-rm src/lib/supabase.ts src/components/connection-check.tsx
+rm src/lib/supabase.ts src/components/connection-check.tsx src/app/page.tsx
 ```
 
-`src/app/page.tsx`를 임시 자리표시자로 교체 (Task 21에서 실제 대시보드로 다시 교체됨):
-
-```tsx
-// src/app/page.tsx
-export default function Home() {
-  return null
-}
-```
+`src/app/page.tsx`는 완전히 삭제한다 (되살리지 않는다). 대시보드는 Task 21에서 `src/app/(family)/page.tsx`로 새로 만든다 — Task 15에서 만들 보호 레이아웃(`src/app/(family)/layout.tsx`)이 `(family)` 라우트 그룹 안의 페이지만 감싸기 때문에, 최상위 `src/app/page.tsx`에 두면 사이드바/상단바 없이 렌더링되어 버린다. 이 시점부터 Task 15가 끝나기 전까지 `/`는 404가 뜨는 게 정상이다 (다음 태스크들이 순서대로 채워나간다).
 
 - [ ] **Step 6: 커밋**
 
@@ -2392,7 +2385,7 @@ git commit -m "feat: add photo upload and lightbox edit/delete"
 ### Task 21: 대시보드 (위젯 조합)
 
 **Files:**
-- Modify: `src/app/page.tsx`
+- Create: `src/app/(family)/page.tsx` (Task 3에서 `src/app/page.tsx`는 삭제됐다 — 대시보드는 `(family)` 라우트 그룹 안에 새로 만들어야 Task 15의 보호 레이아웃이 감싼다)
 
 **Interfaces:**
 - Consumes: `requireProfile()` (Task 10), `createClient()` (server, Task 3), `buildWeekGrid`/`formatDateKey` (Task 8), `getHoliday` (Task 7), `toSignedPhotos` (Task 19)
@@ -2400,7 +2393,7 @@ git commit -m "feat: add photo upload and lightbox edit/delete"
 - [ ] **Step 1: 대시보드 구현**
 
 ```tsx
-// src/app/page.tsx
+// src/app/(family)/page.tsx
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/auth/session'
@@ -2529,7 +2522,7 @@ npm run build
 - [ ] **Step 4: 커밋**
 
 ```bash
-git add src/app/page.tsx
+git add "src/app/(family)/page.tsx"
 git commit -m "feat: compose dashboard with calendar/album/user widgets"
 ```
 
