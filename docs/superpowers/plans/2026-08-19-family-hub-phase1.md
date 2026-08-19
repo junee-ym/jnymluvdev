@@ -1873,7 +1873,7 @@ export async function deleteEvent(
 `calendar-client.tsx` 최상단 import에 추가:
 
 ```tsx
-import { useActionState } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
 import { createEvent, deleteEvent, updateEvent, type EventFormState } from './actions'
 import { useToast } from '@/components/toast-provider'
 ```
@@ -1885,9 +1885,9 @@ const [modalDate, setModalDate] = useState<string | null>(null)
 const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
 const { showToast } = useToast()
 const initialEventState: EventFormState = { error: null }
-const [createState, createFormAction] = useActionState(createEvent, initialEventState)
-const [updateState, updateFormAction] = useActionState(updateEvent, initialEventState)
-const [deleteState, deleteFormAction] = useActionState(deleteEvent, initialEventState)
+const [createState, createFormAction, createPending] = useActionState(createEvent, initialEventState)
+const [updateState, updateFormAction, updatePending] = useActionState(updateEvent, initialEventState)
+const [deleteState, deleteFormAction, deletePending] = useActionState(deleteEvent, initialEventState)
 
 function openModal(dateKey: string, event?: CalendarEvent) {
   setModalDate(dateKey)
@@ -1897,6 +1897,39 @@ function closeModal() {
   setModalDate(null)
   setEditingEvent(null)
 }
+
+// useActionState의 state는 액션이 완료된 뒤의 리렌더에서만 최신값이 된다.
+// <form action={async (formData) => { await dispatch(formData); if (!state.error) ... }}>처럼
+// 디스패치 직후 곧바로 state를 읽으면 "이전 렌더의" 값(대개 초기값 error:null)을 읽게 되어
+// 실패한 요청도 항상 성공으로 표시되는 버그가 생긴다. pending이 true→false로 바뀌는
+// 렌더에서는 state가 이미 그 요청의 실제 결과로 갱신되어 있으므로, 그 전이(edge)를
+// useRef로 감지해 토스트/모달 닫기를 실행한다.
+const wasCreatePending = useRef(false)
+useEffect(() => {
+  if (wasCreatePending.current && !createPending && !createState.error) {
+    showToast('일정이 저장됐어요')
+    closeModal()
+  }
+  wasCreatePending.current = createPending
+}, [createPending, createState])
+
+const wasUpdatePending = useRef(false)
+useEffect(() => {
+  if (wasUpdatePending.current && !updatePending && !updateState.error) {
+    showToast('일정이 수정됐어요')
+    closeModal()
+  }
+  wasUpdatePending.current = updatePending
+}, [updatePending, updateState])
+
+const wasDeletePending = useRef(false)
+useEffect(() => {
+  if (wasDeletePending.current && !deletePending && !deleteState.error) {
+    showToast('일정을 삭제했어요')
+    closeModal()
+  }
+  wasDeletePending.current = deletePending
+}, [deletePending, deleteState])
 ```
 
 월간 뷰의 `day-cell` 렌더에 `onClick={() => openModal(cell.dateKey)}` 추가, 각 `.evt` 항목에는 `onClick={(e) => { e.stopPropagation(); openModal(cell.dateKey, ev) }}` 추가. 주간 뷰의 `.week-col`에도 동일하게 `onClick={() => openModal(dateKey)}` 추가.
@@ -1914,17 +1947,7 @@ function closeModal() {
   <div className="modal-overlay open" onClick={(e) => { if (e.target === e.currentTarget) closeModal() }}>
     <div className="modal">
       <h3>{editingEvent ? '일정 수정' : '일정 추가'}</h3>
-      <form
-        action={async (formData) => {
-          const result = editingEvent
-            ? await updateFormAction(formData)
-            : await createFormAction(formData)
-          if (!(editingEvent ? updateState.error : createState.error)) {
-            showToast(editingEvent ? '일정이 수정됐어요' : '일정이 저장됐어요')
-            closeModal()
-          }
-        }}
-      >
+      <form action={editingEvent ? updateFormAction : createFormAction}>
         {editingEvent && <input type="hidden" name="eventId" value={editingEvent.id} />}
         <label>날짜</label>
         <input type="date" name="date" defaultValue={editingEvent?.date ?? modalDate} required />
@@ -1937,21 +1960,13 @@ function closeModal() {
         )}
         <div className="modal-actions">
           <button type="button" className="btn-cancel" onClick={closeModal}>취소</button>
-          <button type="submit" className="btn-save">저장</button>
+          <button type="submit" className="btn-save" disabled={createPending || updatePending}>저장</button>
         </div>
       </form>
       {editingEvent && (
-        <form
-          action={async (formData) => {
-            await deleteFormAction(formData)
-            if (!deleteState.error) {
-              showToast('일정을 삭제했어요')
-              closeModal()
-            }
-          }}
-        >
+        <form action={deleteFormAction}>
           <input type="hidden" name="eventId" value={editingEvent.id} />
-          <button type="submit" className="btn-delete">이 일정 삭제하기</button>
+          <button type="submit" className="btn-delete" disabled={deletePending}>이 일정 삭제하기</button>
         </form>
       )}
     </div>
@@ -1959,7 +1974,7 @@ function closeModal() {
 )}
 ```
 
-> **참고:** `useActionState`가 반환하는 `state`는 액션 완료 후 리렌더에서 갱신되므로, 위 코드처럼 액션 직후 `state.error`를 바로 참조하면 한 렌더 지연이 있을 수 있다. 더 정확한 성공 판정이 필요하면 각 액션이 `{ error, success: true }` 형태로 성공 플래그까지 반환하도록 Task 완료 후 다듬어도 된다 (Phase 1에서는 토스트 타이밍이 한 프레임 늦어도 기능적으로 문제없다).
+`<form action={...}>`에 `useActionState`가 반환한 디스패치 함수(`createFormAction`/`updateFormAction`/`deleteFormAction`)를 **직접** 연결한다 — `async (formData) => { await dispatch(formData); ... }`처럼 감싸서 디스패치 직후 `state`를 읽지 않는다. 그렇게 감싸면 `state`가 아직 이전 렌더의 값(대개 초기값)이라, 서버에서 거부된 요청도 항상 성공 토스트를 띄우고 모달을 닫아버리는 실제 버그가 된다. 성공/실패 판정과 토스트/모달 닫기는 위 `useEffect`들이 `pending`이 true→false로 바뀌는 시점(그때는 `state`가 이미 그 요청의 실제 결과로 갱신돼 있음)을 감지해서 처리한다.
 
 - [ ] **Step 3: 수동 확인**
 
@@ -2237,7 +2252,7 @@ export async function deletePhoto(
 ```tsx
 'use client'
 
-import { useActionState, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/toast-provider'
 import { deletePhoto, savePhotoMeta, updatePhoto, type PhotoFormState } from './actions'
@@ -2256,8 +2271,30 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
 
   const initialState: PhotoFormState = { error: null }
   const [, saveMetaAction] = useActionState(savePhotoMeta, initialState)
-  const [updateState, updateFormAction] = useActionState(updatePhoto, initialState)
-  const [deleteState, deleteFormAction] = useActionState(deletePhoto, initialState)
+  const [updateState, updateFormAction, updatePending] = useActionState(updatePhoto, initialState)
+  const [deleteState, deleteFormAction, deletePending] = useActionState(deletePhoto, initialState)
+
+  // Task 18(달력 CRUD) 리뷰에서 발견된 버그와 동일한 함정을 피한다: <form action={...}>를
+  // async 래퍼로 감싸 디스패치 직후 *State를 읽으면 아직 이전 렌더의 값(초기값)이라
+  // 실패한 요청도 항상 성공으로 표시된다. pending이 true→false로 바뀌는 렌더에서만
+  // state가 이 요청의 실제 결과로 갱신돼 있으므로, 그 전이를 감지해서 처리한다.
+  const wasUpdatePending = useRef(false)
+  useEffect(() => {
+    if (wasUpdatePending.current && !updatePending && !updateState.error) {
+      showToast('사진 정보를 저장했어요')
+      setLightboxPhoto(null)
+    }
+    wasUpdatePending.current = updatePending
+  }, [updatePending, updateState])
+
+  const wasDeletePending = useRef(false)
+  useEffect(() => {
+    if (wasDeletePending.current && !deletePending && !deleteState.error) {
+      showToast('사진을 삭제했어요')
+      setLightboxPhoto(null)
+    }
+    wasDeletePending.current = deletePending
+  }, [deletePending, deleteState])
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return
@@ -2329,15 +2366,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
           <div className="lightbox">
             <img className="lightbox-img" src={lightboxPhoto.signedUrl} alt="" />
             <div className="lightbox-body">
-              <form
-                action={async (formData) => {
-                  await updateFormAction(formData)
-                  if (!updateState.error) {
-                    showToast('사진 정보를 저장했어요')
-                    setLightboxPhoto(null)
-                  }
-                }}
-              >
+              <form action={updateFormAction}>
                 <input type="hidden" name="photoId" value={lightboxPhoto.id} />
                 <label>날짜</label>
                 <input type="date" name="date" defaultValue={lightboxPhoto.date} required />
@@ -2348,21 +2377,13 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
                 {updateState.error && <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{updateState.error}</p>}
                 <div className="lightbox-actions">
                   <button type="button" className="btn-cancel" onClick={() => setLightboxPhoto(null)}>닫기</button>
-                  <button type="submit" className="btn-save">저장</button>
+                  <button type="submit" className="btn-save" disabled={updatePending}>저장</button>
                 </div>
               </form>
-              <form
-                action={async (formData) => {
-                  await deleteFormAction(formData)
-                  if (!deleteState.error) {
-                    showToast('사진을 삭제했어요')
-                    setLightboxPhoto(null)
-                  }
-                }}
-              >
+              <form action={deleteFormAction}>
                 <input type="hidden" name="photoId" value={lightboxPhoto.id} />
                 <input type="hidden" name="path" value={lightboxPhoto.path} />
-                <button type="submit" className="btn-delete">이 사진 삭제하기</button>
+                <button type="submit" className="btn-delete" disabled={deletePending}>이 사진 삭제하기</button>
               </form>
             </div>
           </div>
