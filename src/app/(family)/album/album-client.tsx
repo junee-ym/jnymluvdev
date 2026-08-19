@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { formatDateKey } from '@/lib/calendar/grid'
 import { useToast } from '@/components/toast-provider'
 import { deletePhoto, savePhotoMeta, updatePhoto, type PhotoFormState } from './actions'
 import type { Photo, Profile } from '@/lib/types'
@@ -45,7 +46,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
       setLightboxPhoto(null)
     }
     wasUpdatePending.current = updatePending
-  }, [updatePending, updateState])
+  }, [updatePending, updateState, showToast])
 
   const wasDeletePending = useRef(false)
   useEffect(() => {
@@ -54,13 +55,15 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
       setLightboxPhoto(null)
     }
     wasDeletePending.current = deletePending
-  }, [deletePending, deleteState])
+  }, [deletePending, deleteState, showToast])
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return
     setUploading(true)
     const supabase = createClient()
-    const today = new Date().toISOString().slice(0, 10)
+    // toISOString()은 UTC 기준이라 한국 시간 오전 9시 이전에는 어제 날짜가 된다.
+    // 이 앱의 다른 날짜 처리와 동일하게 로컬 시간 기준 formatDateKey를 쓴다.
+    const today = formatDateKey(new Date())
 
     let succeeded = 0
     let failed = 0
@@ -161,7 +164,9 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
               </form>
               <form action={deleteFormAction}>
                 <input type="hidden" name="photoId" value={lightboxPhoto.id} />
-                <input type="hidden" name="path" value={lightboxPhoto.path} />
+                {deleteState.error && (
+                  <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{deleteState.error}</p>
+                )}
                 <button type="submit" className="btn-delete" disabled={deletePending}>이 사진 삭제하기</button>
               </form>
             </div>

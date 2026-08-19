@@ -1,8 +1,9 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react'
 import { buildMonthGrid, buildWeekGrid, formatDateKey } from '@/lib/calendar/grid'
 import { getHoliday } from '@/lib/calendar/holidays'
+import { canModify } from '@/lib/auth/permissions'
 import type { CalendarEvent, Profile } from '@/lib/types'
 import { createEvent, deleteEvent, updateEvent, type EventFormState } from './actions'
 import { useToast } from '@/components/toast-provider'
@@ -32,10 +33,16 @@ export function CalendarClient({
     setModalDate(dateKey)
     setEditingEvent(event ?? null)
   }
-  function closeModal() {
+  // 아래 pending 전이 감지 useEffect들의 의존성 배열에 넣기 위해 참조를 고정한다.
+  const closeModal = useCallback(() => {
     setModalDate(null)
     setEditingEvent(null)
-  }
+  }, [])
+
+  // 서버(actions.ts)가 이미 막고 있는 권한을 UI에도 반영한다 —
+  // 남의 일정에는 삭제 버튼 자체를 보여주지 않는다.
+  const canDeleteEditing =
+    editingEvent !== null && canModify(profile.userId, editingEvent.userId, profile.role)
 
   // useActionState의 state는 액션이 완료된 뒤의 리렌더에서만 최신값이 된다.
   // <form action={async (formData) => { await dispatch(formData); if (!state.error) ... }}>처럼
@@ -50,7 +57,7 @@ export function CalendarClient({
       closeModal()
     }
     wasCreatePending.current = createPending
-  }, [createPending, createState])
+  }, [createPending, createState, showToast, closeModal])
 
   const wasUpdatePending = useRef(false)
   useEffect(() => {
@@ -59,7 +66,7 @@ export function CalendarClient({
       closeModal()
     }
     wasUpdatePending.current = updatePending
-  }, [updatePending, updateState])
+  }, [updatePending, updateState, showToast, closeModal])
 
   const wasDeletePending = useRef(false)
   useEffect(() => {
@@ -68,7 +75,7 @@ export function CalendarClient({
       closeModal()
     }
     wasDeletePending.current = deletePending
-  }, [deletePending, deleteState])
+  }, [deletePending, deleteState, showToast, closeModal])
 
   function shift(dir: number) {
     if (viewMode === 'month') {
@@ -205,9 +212,12 @@ export function CalendarClient({
                 <button type="submit" className="btn-save" disabled={createPending || updatePending}>저장</button>
               </div>
             </form>
-            {editingEvent && (
+            {editingEvent && canDeleteEditing && (
               <form action={deleteFormAction}>
                 <input type="hidden" name="eventId" value={editingEvent.id} />
+                {deleteState.error && (
+                  <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{deleteState.error}</p>
+                )}
                 <button type="submit" className="btn-delete" disabled={deletePending}>이 일정 삭제하기</button>
               </form>
             )}

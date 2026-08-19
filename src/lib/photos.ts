@@ -25,7 +25,6 @@ export async function toSignedPhotos(
         date: row.taken_dt,
         location: row.locatn,
         caption: row.caption,
-        path: row.strpath,
         userId: row.user_id,
         signedUrl: signed?.signedUrl ?? '',
       }

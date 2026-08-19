@@ -22,7 +22,8 @@ export type Photo = {
   date: string
   location: string | null
   caption: string | null
-  path: string
+  // strpath(스토리지 경로)는 클라이언트로 내려보내지 않는다. 삭제 시 서버가
+  // photo_id로 DB에서 직접 읽는다 — 클라이언트가 보낸 경로를 믿으면 안 된다.
   userId: string
   signedUrl: string
 }
