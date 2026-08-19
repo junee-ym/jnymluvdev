@@ -57,6 +57,16 @@ DB 마이그레이션은 `npx supabase link --project-ref tfcgmolcduavcevqdoof` 
 - Supabase 대시보드 → Authentication → URL Configuration: Site URL과 Redirect URLs가 실제 배포 주소로 되어있어야 함(기본값 localhost로 두면 초대 메일 링크가 로컬로 감).
 - Supabase 기본 이메일 발송은 시간당 몇 통 수준으로 매우 제한적(테스트용). 실사용하려면 Authentication → Emails → SMTP Settings에서 커스텀 SMTP 필요 — 현재 Gmail SMTP(`smtp.gmail.com:587`)로 설정됨, 발신 계정은 2단계 인증 + 앱 비밀번호 필요(계정 비밀번호 그대로 쓰면 `535 BadCredentials`로 거부됨).
 
+## Notion 패치노트 (배포할 때마다 필수)
+
+`main`에 push해서 Vercel 배포가 나가면(=사용자가 "배포해줘"라고 하거나 직접 push할 때마다), **매번** 아래 Notion 페이지에 그 배포분의 패치노트를 자동으로 기록한다. 사용자에게 다시 물어보지 않고 진행.
+
+- **페이지**: [우리집 (jnymluvdev) 패치노트](https://app.notion.com/p/3c13b8f518fc81cdae94fce6cf8e9cfe) (`notion-fetch`/`notion-update-page`로 접근, page_id `3c13b8f5-18fc-81cd-ae94-fce6cf8e9cfe`)
+- **형식**: 날짜는 **제목1(Heading 1) 토글**, 그 아래 들여쓴 자식으로 패치 내용 bullet. Notion-flavored Markdown에서는 진짜 토글 헤딩이어야 함 — 텍스트로 "▶" 붙이는 게 아니라 `# 2026-08-20 {toggle="true"}` 문법을 쓰고 그 아래 줄들을 tab으로 들여쓸 것 (자세한 문법은 `notion://docs/enhanced-markdown-spec` 참고).
+- 같은 날짜에 배포가 여러 번 나가면 새 토글을 또 만들지 말고 **기존 그 날짜 토글 안에 bullet을 추가**한다.
+- 각 항목은 무엇을 왜 고쳤는지 한 줄 요약 + 관련 커밋 해시 표기.
+- 새 페이지가 아니라 이 기존 페이지를 계속 갱신하는 것 — 매번 새로 만들지 말 것.
+
 ## 현재 상태 / 알려진 미해결 항목
 
 - 첫 관리자(jn.ym.luv.dev@gmail.com)까지 초대 메일 발송 및 SMTP 정상 동작 확인됨. 운영자(evilet12@gmail.com)는 관리자 가입 확인 후 이어서 초대 예정.
