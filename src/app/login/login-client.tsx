@@ -20,13 +20,13 @@ export function LoginClient({ redirectError }: { redirectError: string | null })
         </p>
 
         {redirectError && (
-          <p style={{ color: 'var(--burgundy)', fontSize: 12.5, marginBottom: 12 }}>{redirectError}</p>
+          <p style={{ color: 'var(--danger)', fontSize: 12.5, marginBottom: 12 }}>{redirectError}</p>
         )}
 
         <form action={formAction} className="member-list">
           <input type="email" name="email" placeholder="이메일" required />
           <input type="password" name="password" placeholder="비밀번호" required />
-          {state.error && <p style={{ color: 'var(--burgundy)', fontSize: 12.5 }}>{state.error}</p>}
+          {state.error && <p style={{ color: 'var(--danger)', fontSize: 12.5 }}>{state.error}</p>}
           <button type="submit" className="invite-btn" disabled={pending}>
             {pending ? '로그인 중...' : '로그인'}
           </button>

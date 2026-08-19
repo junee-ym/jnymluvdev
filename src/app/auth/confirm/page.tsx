@@ -49,7 +49,7 @@ export default function ConfirmPage() {
         <div className="login-mark">우</div>
         <div className="login-title">확인하는 중이에요...</div>
         {error ? (
-          <p style={{ color: 'var(--burgundy)', fontSize: 12.5 }}>{error}</p>
+          <p style={{ color: 'var(--danger)', fontSize: 12.5 }}>{error}</p>
         ) : (
           <p className="login-sub">잠시만 기다려주세요.</p>
         )}

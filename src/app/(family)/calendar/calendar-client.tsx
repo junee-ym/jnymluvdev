@@ -205,7 +205,7 @@ export function CalendarClient({
               <label>시간 (선택)</label>
               <input type="time" name="time" defaultValue={editingEvent?.time ?? ''} />
               {(createState.error || updateState.error) && (
-                <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{createState.error ?? updateState.error}</p>
+                <p style={{ color: 'var(--danger)', fontSize: 12 }}>{createState.error ?? updateState.error}</p>
               )}
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={closeModal}>취소</button>
@@ -216,7 +216,7 @@ export function CalendarClient({
               <form action={deleteFormAction}>
                 <input type="hidden" name="eventId" value={editingEvent.id} />
                 {deleteState.error && (
-                  <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{deleteState.error}</p>
+                  <p style={{ color: 'var(--danger)', fontSize: 12 }}>{deleteState.error}</p>
                 )}
                 <button type="submit" className="btn-delete" disabled={deletePending}>이 일정 삭제하기</button>
               </form>

@@ -18,7 +18,7 @@ export default function SetPasswordPage() {
         <form action={formAction} className="member-list">
           <input type="text" name="name" placeholder="이름" required />
           <input type="password" name="password" placeholder="비밀번호 (8자 이상)" required minLength={8} />
-          {state.error && <p style={{ color: 'var(--burgundy)', fontSize: 12.5 }}>{state.error}</p>}
+          {state.error && <p style={{ color: 'var(--danger)', fontSize: 12.5 }}>{state.error}</p>}
           <button type="submit" className="invite-btn" disabled={pending}>
             {pending ? '설정 중...' : '시작하기'}
           </button>

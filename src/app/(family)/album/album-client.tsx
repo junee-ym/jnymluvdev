@@ -156,7 +156,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
                 <input type="text" name="caption" defaultValue={lightboxPhoto.caption ?? ''} placeholder="예: 거실에서" />
                 <label>장소 (선택)</label>
                 <input type="text" name="location" defaultValue={lightboxPhoto.location ?? ''} placeholder="예: 제주도" />
-                {updateState.error && <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{updateState.error}</p>}
+                {updateState.error && <p style={{ color: 'var(--danger)', fontSize: 12 }}>{updateState.error}</p>}
                 <div className="lightbox-actions">
                   <button type="button" className="btn-cancel" onClick={() => setLightboxPhoto(null)}>닫기</button>
                   <button type="submit" className="btn-save" disabled={updatePending}>저장</button>
@@ -165,7 +165,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
               <form action={deleteFormAction}>
                 <input type="hidden" name="photoId" value={lightboxPhoto.id} />
                 {deleteState.error && (
-                  <p style={{ color: 'var(--burgundy)', fontSize: 12 }}>{deleteState.error}</p>
+                  <p style={{ color: 'var(--danger)', fontSize: 12 }}>{deleteState.error}</p>
                 )}
                 <button type="submit" className="btn-delete" disabled={deletePending}>이 사진 삭제하기</button>
               </form>
