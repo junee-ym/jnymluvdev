@@ -1,0 +1,110 @@
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import { requireProfile } from '@/lib/auth/session'
+import { buildWeekGrid, formatDateKey } from '@/lib/calendar/grid'
+import { getHoliday } from '@/lib/calendar/holidays'
+import { toSignedPhotos } from '@/lib/photos'
+
+const DOWS = ['일', '월', '화', '수', '목', '금', '토']
+
+export default async function DashboardPage() {
+  const profile = await requireProfile()
+  const supabase = await createClient()
+
+  const week = buildWeekGrid(new Date())
+  const weekStart = formatDateKey(week[0])
+  const weekEnd = formatDateKey(week[6])
+  const today = formatDateKey(new Date())
+
+  const { data: eventRows } = await supabase
+    .from('t_event')
+    .select('event_id, event_dt, title')
+    .gte('event_dt', weekStart)
+    .lte('event_dt', weekEnd)
+
+  const { data: photoRows } = await supabase
+    .from('t_photo')
+    .select('photo_id, taken_dt, locatn, caption, strpath, user_id')
+    .order('taken_dt', { ascending: false })
+    .limit(5)
+
+  const { count: memberCount } = await supabase
+    .from('t_user')
+    .select('user_id', { count: 'exact', head: true })
+
+  const recentPhotos = await toSignedPhotos(supabase, photoRows ?? [])
+
+  return (
+    <section>
+      <div className="topbar">
+        <div>
+          <div className="greet-eyebrow">오늘도 좋은 하루예요</div>
+          <div className="greet"><span>{profile.name}</span>님</div>
+        </div>
+      </div>
+
+      <div className="bento">
+        <div className="card w-cal">
+          <div className="card-head">
+            <div className="card-title">이번 주 일정</div>
+            <Link href="/calendar" className="card-link">달력 열기 →</Link>
+          </div>
+          <div className="week-row">
+            {week.map((date, i) => {
+              const key = formatDateKey(date)
+              const holiday = getHoliday(key)
+              const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
+              const tag = holiday?.name ?? dayEvents[0]?.title
+              return (
+                <div className={`week-day${key === today ? ' today' : ''}`} key={key}>
+                  <div className="dow">{DOWS[i]}</div>
+                  <div className="num">{date.getDate()}</div>
+                  {tag && <div className="tag">{tag}</div>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="card w-user">
+          <div className="avatar">{profile.name.slice(-2)}</div>
+          <div className="name">{profile.name}</div>
+          <div className="role">{profile.role}</div>
+          <div className="stats">
+            <div className="stat"><b>{memberCount ?? 0}</b><span>가족 구성원</span></div>
+          </div>
+        </div>
+
+        <div className="card w-album">
+          <div className="card-head">
+            <div className="card-title">최근 앨범</div>
+            <Link href="/album" className="card-link">전체 보기 →</Link>
+          </div>
+          <div className="album-grid">
+            {recentPhotos.map((photo) => (
+              <div className="ph" key={photo.id}>
+                <img src={photo.signedUrl} alt={photo.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card w-budget">
+          <div className="card-head">
+            <div className="card-title">가계부</div>
+            <span className="card-link">준비중</span>
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>가계부 기능은 곧 만나보실 수 있어요.</p>
+        </div>
+
+        <div className="card w-fridge">
+          <div className="card-head">
+            <div className="card-title">냉장고</div>
+            <span className="card-link">준비중</span>
+          </div>
+          <p style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>냉장고 기능은 곧 만나보실 수 있어요.</p>
+        </div>
+      </div>
+    </section>
+  )
+}
