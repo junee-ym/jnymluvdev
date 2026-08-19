@@ -22,7 +22,10 @@ button{ font-family:inherit; }
 .login-title{ font-size:20px; font-weight:800; margin-bottom:6px; }
 .login-sub{ font-size:13px; color:var(--ink-soft); line-height:1.5; margin-bottom:26px; }
 .member-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
-.member-btn{ display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; border:1px solid var(--line); background:var(--surface); cursor:pointer; text-align:left; transition:border-color .15s, background-color .15s; }
+.member-list input{ width:100%; padding:13px 14px; border-radius:var(--radius-md); border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:14px; font-family:inherit; }
+.member-list input::placeholder{ color:var(--ink-soft); }
+.member-list input:focus{ outline:none; border-color:var(--burgundy); }
+.member-btn{ display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.16); background:var(--surface-2); font-weight:600; cursor:pointer; text-align:left; transition:border-color .15s, background-color .15s; }
 .member-btn:hover{ border-color:var(--burgundy); background:var(--burgundy-tint); }
 .member-avatar{ width:36px;height:36px;border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; flex-shrink:0; }
 .member-info b{ display:block; font-size:13.5px; }

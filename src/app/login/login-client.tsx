@@ -39,7 +39,9 @@ export function LoginClient({ redirectError }: { redirectError: string | null })
         </form>
 
         <p className="login-note" style={{ marginTop: 18 }}>
-          회원가입은 없어요. 운영자·관리자가 보낸 초대 메일로만 가입할 수 있어요.
+          회원가입은 없어요.
+          <br />
+          운영자·관리자가 보낸 초대 메일로만 가입할 수 있어요.
         </p>
       </div>
     </div>
