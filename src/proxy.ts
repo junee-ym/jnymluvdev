@@ -31,7 +31,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && path === '/login') {
+  // ?error=... 가 붙은 /login은 거부 사유를 보여주려고 온 것이므로 되돌려보내지 않는다.
+  // (초대받지 않은 계정의 세션이 아직 브라우저에 남아 있는 경우 —
+  //  requireProfile()이 signOut 하지만 Server Component에서는 쿠키 삭제가 반영되지 않는다 —
+  //  여기서 다시 /로 보내면 /login ↔ / 무한 루프가 된다.)
+  if (user && path === '/login' && !request.nextUrl.searchParams.has('error')) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
