@@ -1,43 +1,22 @@
-'use client'
+import { LoginClient } from './login-client'
 
-import { useActionState } from 'react'
-import { loginWithGoogle, loginWithPassword, type LoginState } from './actions'
+// 리다이렉트로 넘어오는 ?error= 코드별 안내 문구.
+// (auth/confirm의 confirm·not_invited, requireProfile의 not_member, loginWithGoogle의 google)
+const ERROR_MESSAGES: Record<string, string> = {
+  google: '구글 로그인을 시작하지 못했어요. 다시 시도해주세요',
+  confirm: '로그인 링크가 만료됐거나 올바르지 않아요. 다시 시도해주세요',
+  not_invited: '초대받은 가족 계정이 아니에요. 운영자에게 초대를 요청해주세요',
+  not_member: '가족 구성원 정보를 찾을 수 없어요. 운영자에게 문의해주세요',
+}
 
-const initialState: LoginState = { error: null }
+// searchParams는 서버에서 읽는다. 클라이언트에서 useSearchParams()를 쓰면
+// 프리렌더 시 Suspense 경계를 요구해 빌드가 깨진다.
+export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
+  const { error } = await searchParams
+  const code = Array.isArray(error) ? error[0] : error
+  const redirectError = code
+    ? (ERROR_MESSAGES[code] ?? '로그인에 실패했어요. 다시 시도해주세요')
+    : null
 
-export default function LoginPage() {
-  const [state, formAction, pending] = useActionState(loginWithPassword, initialState)
-
-  return (
-    <div id="loginScreen">
-      <div className="login-card">
-        <div className="login-mark">우</div>
-        <div className="login-title">우리집</div>
-        <p className="login-sub">
-          가족만의 공간이에요.
-          <br />
-          이메일과 비밀번호로 로그인하세요.
-        </p>
-
-        <form action={formAction} className="member-list">
-          <input type="email" name="email" placeholder="이메일" required />
-          <input type="password" name="password" placeholder="비밀번호" required />
-          {state.error && <p style={{ color: 'var(--burgundy)', fontSize: 12.5 }}>{state.error}</p>}
-          <button type="submit" className="invite-btn" disabled={pending}>
-            {pending ? '로그인 중...' : '로그인'}
-          </button>
-        </form>
-
-        <form action={loginWithGoogle} style={{ marginTop: 8 }}>
-          <button type="submit" className="member-btn" style={{ width: '100%', justifyContent: 'center' }}>
-            Google로 로그인
-          </button>
-        </form>
-
-        <p className="login-note" style={{ marginTop: 18 }}>
-          회원가입은 없어요. 운영자·관리자가 보낸 초대 메일로만 가입할 수 있어요.
-        </p>
-      </div>
-    </div>
-  )
+  return <LoginClient redirectError={redirectError} />
 }

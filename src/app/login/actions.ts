@@ -9,7 +9,8 @@ export async function loginWithPassword(
   _prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  const email = String(formData.get('email') ?? '')
+  // Supabase는 auth.users.email을 소문자로 보관하므로 입력값도 맞춰서 정규화한다.
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
 
   if (!email || !password) {

@@ -26,11 +26,16 @@ export async function setPassword(
     return { error: '초대 세션이 만료됐어요. 초대 메일을 다시 요청해주세요' }
   }
 
+  // maybeSingle()은 2행 이상이면 에러를 던진다. 같은 이메일로 초대를 다시 보낸
+  // 경우(가장 흔한 운영 동작) 원래 초대까지 못 쓰게 되므로, 항상 가장 최근
+  // PENDING 초대 1건으로 좁혀서 읽는다.
   const { data: invite } = await supabase
     .from('t_invite')
     .select('invite_id, role, status')
     .eq('email', user.email)
     .eq('status', 'PENDING')
+    .order('created', { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   if (!invite) {
