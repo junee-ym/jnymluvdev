@@ -1087,11 +1087,9 @@ export async function setPassword(
     return { error: '초대 세션이 만료됐어요. 초대 메일을 다시 요청해주세요' }
   }
 
-  const { error: updateError } = await supabase.auth.updateUser({ password })
-  if (updateError) {
-    return { error: '비밀번호 설정에 실패했어요' }
-  }
-
+  // 초대가 유효한지 먼저 확인한다 — updateUser(비밀번호 설정)를 먼저 실행하면,
+  // 초대가 그 사이 취소/소진된 경우 사용자가 t_user 없이 로그인만 가능한
+  // "고아 계정" 상태로 남는다. 유효성 확인이 끝난 뒤에만 실제 인증 정보를 바꾼다.
   const { data: invite } = await supabase
     .from('t_invite')
     .select('invite_id, role, status')
@@ -1104,6 +1102,11 @@ export async function setPassword(
   }
 
   acceptInvite(invite.status as 'PENDING' | 'ACCEPTED')
+
+  const { error: updateError } = await supabase.auth.updateUser({ password })
+  if (updateError) {
+    return { error: '비밀번호 설정에 실패했어요' }
+  }
 
   const { error: userInsertError } = await supabase.from('t_user').insert({
     user_id: user.id,
