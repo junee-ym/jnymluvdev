@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리집 — 가족 일상 기록</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F7F1EA;
+    --surface: #FFFEFC;
+    --surface-2: #EFE2D6;
+    --ink: #2A211D;
+    --ink-soft: #8A7A6E;
+    --line: #E4D5C4;
+    --burgundy: #A11627;
+    --burgundy-deep: #6E0E1C;
+    --burgundy-bright: #D6293C;
+    --burgundy-tint: #F7DEDD;
+    --gold: #B9884A;
+    --sage: #62744F;
+    --radius-lg: 10px;
+    --radius-md: 8px;
+    --shadow: none;
+  }
+  html.dark{
+    --bg: #17100F;
+    --surface: #221715;
+    --surface-2: #2C1E1B;
+    --ink: #F6ECE6;
+    --ink-soft: #B8A196;
+    --line: #3A2723;
+    --burgundy: #E14C57;
+    --burgundy-deep: #F17F86;
+    --burgundy-bright: #FF6470;
+    --burgundy-tint: #2C1719;
+    --gold: #E0B67D;
+    --sage: #9CB183;
+    --shadow: none;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .35s ease, color .35s ease;
+  }
+  .date-num{ font-family: 'Fraunces', Georgia, serif; font-optical-sizing:auto; font-weight:500; }
+  .greet{ font-family:'Pretendard Variable', sans-serif; }
+
+  /* ---------- Shell ---------- */
+  .shell{ display:flex; min-height:100vh; }
+
+  /* Sidebar */
+  .side{
+    width:230px;
+    flex-shrink:0;
+    padding:28px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+    border-right:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; padding:0 8px; }
+  .brand-mark{
+    width:32px;height:32px;border-radius:8px;
+    background:var(--burgundy);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff; font-size:14px; font-weight:600;
+  }
+  .brand-name{ font-weight:700; font-size:16px; letter-spacing:-.2px; }
+  .brand-sub{ font-size:11px; color:var(--ink-soft); margin-top:1px; }
+
+  nav{ display:flex; flex-direction:column; gap:2px; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px;
+    padding:9px 12px; border-radius:10px;
+    font-size:14px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; user-select:none;
+    transition:background .15s, color .15s;
+  }
+  .nav-item .ic{ width:18px; text-align:center; font-size:15px; opacity:.9;}
+  .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
+  .nav-item.active{ background:var(--burgundy-tint); color:var(--burgundy); font-weight:700; }
+  .nav-soon{ margin-left:auto; font-size:9.5px; padding:2px 6px; border-radius:20px; background:var(--surface-2); color:var(--ink-soft); font-weight:600;}
+
+  .side-foot{ margin-top:auto; }
+  .invite-card{
+    background:var(--surface-2); border-radius:14px; padding:14px;
+    font-size:12px; color:var(--ink-soft); line-height:1.5;
+  }
+  .invite-card b{ color:var(--ink); display:block; margin-bottom:4px; font-size:12.5px;}
+  .invite-btn{
+    margin-top:10px; width:100%; padding:8px; border:none; border-radius:6px;
+    background:var(--burgundy); color:#fff; font-size:12px; font-weight:600; cursor:pointer;
+    letter-spacing:-.1px;
+  }
+
+  /* Main */
+  .main{ flex:1; padding:22px 40px 60px; max-width:1180px; }
+
+  /* Top strip: icons row, always right-aligned, own row */
+  .top-strip{ display:flex; justify-content:flex-end; margin-bottom:20px; }
+  .topbar-right{ display:flex; align-items:center; gap:8px; }
+  .icon-btn{
+    width:34px;height:34px;border-radius:8px; border:1px solid var(--line);
+    background:var(--surface); display:flex;align-items:center;justify-content:center;
+    cursor:pointer; font-size:14px; color:var(--ink-soft); flex-shrink:0;
+    transition:background-color .15s;
+  }
+  .icon-btn:hover{ color:var(--burgundy); border-color:var(--burgundy); background:var(--burgundy-tint); }
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(155deg,#D9B48F,var(--gold));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;
+    flex-shrink:0;
+  }
+  .edit-layout{
+    display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; padding:0; border-radius:8px;
+    color:var(--ink-soft); border:1px solid var(--line); cursor:pointer;
+    background:var(--surface); font-size:14px; flex-shrink:0;
+    transition:background-color .15s;
+  }
+  .edit-layout:hover{ color:var(--burgundy); border-color:var(--burgundy); background:var(--burgundy-tint); }
+
+  .topbar{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; }
+  .greet-eyebrow{ font-size:11px; color:var(--ink-soft); font-weight:600; letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px;}
+  .greet{ font-size:26px; font-weight:400; letter-spacing:-0.7px; line-height:1.3; }
+  .greet span{ color:var(--burgundy); font-weight:600; }
+
+  /* Bento grid */
+  .bento{
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 108px;
+    gap:16px;
+  }
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+    padding:18px 20px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column;
+    transition:border-color .15s ease, background-color .15s ease;
+  }
+  .card:hover{ border-color: color-mix(in srgb, var(--burgundy) 35%, var(--line)); }
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .card-title{ font-size:11px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:6px; letter-spacing:.06em; text-transform:uppercase;}
+  .card-title .dot{ width:5px;height:5px;border-radius:50%; }
+  .card-link{ font-size:11px; color:var(--ink-soft); opacity:.65; font-weight:600; }
+  .card:hover .card-link{ opacity:1; color:var(--burgundy); }
+
+  /* Weekly calendar widget: 2x1 */
+  .w-cal{ grid-column: span 4; grid-row: span 2; }
+  .cal-dot{ background:var(--sage); }
+  .week-row{ display:flex; justify-content:space-between; margin-top:auto; gap:6px; }
+  .week-day{ flex:1; text-align:center; padding:9px 0 10px; border-radius:12px; }
+  .week-day .dow{ font-size:10.5px; color:var(--ink-soft); font-weight:600; margin-bottom:6px;}
+  .week-day .num{ font-size:15px; font-weight:700; }
+  .week-day.today{ background:var(--burgundy); }
+  .week-day.today .dow, .week-day.today .num{ color:#fff; }
+  .week-day .tag{
+    margin-top:6px; font-size:8.5px; background:var(--surface-2); color:var(--ink-soft);
+    border-radius:6px; padding:1.5px 4px; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .week-day.today .tag{ background:rgba(255,255,255,.22); color:#fff; }
+  .holiday{ color:var(--burgundy) !important; }
+  html.dark .holiday{ color:var(--burgundy-deep) !important; }
+
+  /* User info: 1x1 */
+  .w-user{ grid-column: span 2; grid-row: span 2; align-items:center; text-align:center; justify-content:center; gap:8px; }
+  .w-user .avatar{ width:52px;height:52px; font-size:17px; margin:0 auto; }
+  .w-user .name{ font-weight:800; font-size:14.5px; margin-top:2px; }
+  .w-user .role{ font-size:11px; color:var(--ink-soft); }
+  .w-user .stats{ display:flex; gap:14px; margin-top:8px; }
+  .w-user .stat b{ display:block; font-size:13px; }
+  .w-user .stat span{ font-size:9.5px; color:var(--ink-soft); }
+
+  /* Album: 2 x 3 */
+  .w-album{ grid-column: span 4; grid-row: span 3; }
+  .album-dot{ background:var(--gold); }
+  .album-grid{ flex:1; display:grid; grid-template-columns: repeat(5,1fr); gap:8px; margin-top:2px; }
+  .ph{
+    border-radius:12px; position:relative; overflow:hidden;
+    display:flex; align-items:flex-end; padding:7px;
+    font-size:8.5px; color:#fff; font-weight:600;
+  }
+  .ph::after{ content:""; position:absolute; inset:0; background:linear-gradient(180deg, transparent 45%, rgba(0,0,0,.55)); }
+  .ph span{ position:relative; z-index:1; }
+  .ph.p1{ background:linear-gradient(150deg,#D8B48A,#B98757); }
+  .ph.p2{ background:linear-gradient(150deg,#9FB08A,#6E7F5C); }
+  .ph.p3{ background:linear-gradient(150deg,#C97C88,var(--burgundy)); }
+  .ph.p4{ background:linear-gradient(150deg,#CBB9E0,#8A76AE); }
+  .ph.p5{ background:linear-gradient(150deg,#E3C77A,#A9814C); }
+
+  /* Fridge: 2x1 */
+  .w-fridge{ grid-column: span 2; grid-row: span 2; }
+  .fridge-dot{ background:#C97C88; }
+  .fridge-list{ display:flex; flex-direction:column; gap:8px; margin-top:2px; }
+  .fridge-item{ display:flex; align-items:center; justify-content:space-between; font-size:12px; }
+  .fridge-item .name{ font-weight:600; }
+  .fridge-item .days{
+    font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px;
+    background:var(--burgundy-tint); color:var(--burgundy);
+  }
+  .fridge-item .days.ok{ background:var(--surface-2); color:var(--sage); }
+
+  /* Budget: 2x2 — the one "brand band" card, tinted per Stripe's section-rhythm pattern */
+  .w-budget{ grid-column: span 4; grid-row: span 2; background:var(--burgundy-tint); border-color:transparent; }
+  .budget-dot{ background:var(--burgundy); }
+  .budget-top{ display:flex; align-items:baseline; gap:8px; }
+  .budget-amt{ font-family:'Pretendard Variable',sans-serif; font-size:26px; font-weight:400; letter-spacing:-.6px; }
+  .budget-sub{ font-size:11.5px; color:var(--ink-soft); }
+  .budget-bar{ height:8px; border-radius:6px; background:var(--surface-2); margin-top:12px; overflow:hidden; }
+  .budget-fill{ height:100%; border-radius:6px; background:var(--burgundy); width:64%; }
+  .budget-rows{ margin-top:12px; display:flex; flex-direction:column; gap:7px; }
+  .budget-row{ display:flex; align-items:center; justify-content:space-between; font-size:11.5px; color:var(--ink-soft); }
+  .budget-row b{ color:var(--ink); font-weight:600; }
+
+  footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-align:center; }
+
+  @media (max-width: 880px){
+    .side{ display:none; }
+    .bento{ grid-template-columns: repeat(6,1fr); grid-auto-rows: 92px; gap:12px; }
+    .w-user{ grid-column: span 2; order:-1; }
+    .w-cal{ grid-column: span 4; order:0; }
+    .w-album{ grid-column: span 6; }
+    .w-budget{ grid-column: span 4; }
+    .w-fridge{ grid-column: span 2; }
+    .week-row{ gap:4px; }
+    .week-day .tag{ display:none; }
+    .card{ padding:14px 14px; }
+  }
+  @media (max-width: 520px){
+    .main{ padding:14px 14px 50px; }
+    .bento{ grid-template-columns: repeat(4,1fr); grid-auto-rows: 84px; gap:10px; }
+    .w-user{ grid-column: span 1; grid-row: span 2; order:-1; padding:10px 6px; gap:4px; }
+    .w-cal{ grid-column: span 3; grid-row: span 2; order:0; }
+    .w-user .avatar{ margin:0 auto; width:30px; height:30px; font-size:11px; }
+    .w-user .name{ font-size:10.5px; margin-top:0; }
+    .w-user .role{ display:none; }
+    .w-user .stats{ margin:4px 0 0; gap:0; flex-direction:column; align-items:center; }
+    .w-user .stat{ display:none; }
+    .w-user .stat:first-child{ display:block; }
+    .w-user .stat span{ display:none; }
+    .w-album{ grid-column: span 4; }
+    .w-budget{ grid-column: span 3; }
+    .w-fridge{ grid-column: span 1; grid-row: span 2; padding:10px 8px; }
+    .w-fridge .card-title{ font-size:0; }
+    .w-fridge .card-title .dot{ font-size:0; }
+    .w-fridge .card-link{ display:none; }
+    .w-fridge .fridge-list{ gap:10px; margin-top:6px; }
+    .w-fridge .fridge-item{ flex-direction:column; align-items:center; gap:2px; }
+    .w-fridge .fridge-item .name{ font-size:9px; }
+    .w-fridge .fridge-item .days{ font-size:9.5px; padding:1.5px 5px; }
+    .greet{ font-size:20px; }
+    .album-grid{ grid-template-columns: repeat(5,1fr); }
+    .w-cal .week-row{ gap:2px; }
+    .w-cal .week-day{ padding:6px 0 7px; }
+    .w-cal .week-day .dow{ font-size:9px; margin-bottom:3px; }
+    .w-cal .week-day .num{ font-size:12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">우</div>
+      <div>
+        <div class="brand-name">우리집</div>
+        <div class="brand-sub">가족 일상 기록</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-item active"><span class="ic">▦</span> 대시보드</div>
+      <div class="nav-item"><span class="ic">📅</span> 달력</div>
+      <div class="nav-item"><span class="ic">🖼</span> 앨범</div>
+      <div class="nav-item"><span class="ic">💳</span> 가계부</div>
+      <div class="nav-item"><span class="ic">❄︎</span> 냉장고 <span class="nav-soon">준비중</span></div>
+      <div class="nav-item"><span class="ic">✈</span> 여행일기</div>
+      <div class="nav-item"><span class="ic">🗒</span> 게시판</div>
+    </nav>
+
+    <div class="side-foot">
+      <div class="invite-card">
+        <b>가족 초대하기</b>
+        회원가입 없이, 초대 링크로만 새 가족 구성원을 추가할 수 있어요.
+        <button class="invite-btn">초대 링크 만들기</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top-strip">
+      <div class="topbar-right">
+        <button class="edit-layout" title="위젯 편집" aria-label="위젯 편집">✎</button>
+        <button class="icon-btn" id="themeToggle" title="다크 모드" aria-label="다크 모드 전환">☾</button>
+        <div class="avatar">JW</div>
+      </div>
+    </div>
+
+    <div class="topbar">
+      <div>
+        <div class="greet-eyebrow">2026년 8월 19일 · 수요일</div>
+        <div class="greet">오늘도 좋은 하루예요, <span>지우님</span></div>
+      </div>
+    </div>
+
+    <section class="bento">
+
+      <!-- 주간 달력 2x1 -->
+      <div class="card w-cal">
+        <div class="card-head">
+          <div class="card-title"><span class="dot cal-dot"></span>이번 주 일정</div>
+          <div class="card-link">달력 열기 →</div>
+        </div>
+        <div class="week-row">
+          <div class="week-day"><div class="dow">월</div><div class="num date-num">17</div></div>
+          <div class="week-day"><div class="dow">화</div><div class="num date-num">18</div><div class="tag">치과</div></div>
+          <div class="week-day today"><div class="dow">수</div><div class="num date-num">19</div><div class="tag">가족저녁</div></div>
+          <div class="week-day"><div class="dow">목</div><div class="num date-num">20</div></div>
+          <div class="week-day"><div class="dow">금</div><div class="num date-num">21</div><div class="tag">준영 학원</div></div>
+          <div class="week-day"><div class="dow holiday">토</div><div class="num date-num holiday">22</div></div>
+          <div class="week-day"><div class="dow holiday">일</div><div class="num date-num holiday">23</div></div>
+        </div>
+      </div>
+
+      <!-- 사용자 정보 1x1 -->
+      <div class="card w-user">
+        <div class="avatar">JW</div>
+        <div class="name">김지우</div>
+        <div class="role">엄마 · 운영자</div>
+        <div class="stats">
+          <div class="stat"><b>4</b><span>가족 구성원</span></div>
+          <div class="stat"><b>128</b><span>이번 달 사진</span></div>
+        </div>
+      </div>
+
+      <!-- 앨범 2x3 -->
+      <div class="card w-album">
+        <div class="card-head">
+          <div class="card-title"><span class="dot album-dot"></span>최근 앨범</div>
+          <div class="card-link">전체 보기 →</div>
+        </div>
+        <div class="album-grid">
+          <div class="ph p1"><span>8.18 거실</span></div>
+          <div class="ph p2"><span>8.17 공원</span></div>
+          <div class="ph p3"><span>8.16 저녁</span></div>
+          <div class="ph p4"><span>8.15 생일</span></div>
+          <div class="ph p5"><span>8.12 제주</span></div>
+        </div>
+      </div>
+
+      <!-- 가계부 2x2 (달력처럼 왼쪽, 넓게) -->
+      <div class="card w-budget">
+        <div class="card-head">
+          <div class="card-title"><span class="dot budget-dot"></span>이번 달 가계부</div>
+          <div class="card-link">가계부 열기 →</div>
+        </div>
+        <div class="budget-top">
+          <div class="budget-amt">1,284,000원</div>
+          <div class="budget-sub">/ 예산 2,000,000원</div>
+        </div>
+        <div class="budget-bar"><div class="budget-fill"></div></div>
+        <div class="budget-rows">
+          <div class="budget-row"><span>8.19 · 이마트 장보기</span><b>-86,400원</b></div>
+          <div class="budget-row"><span>8.18 · 준영 학원비</span><b>-320,000원</b></div>
+        </div>
+      </div>
+
+      <!-- 냉장고 (사용자처럼 오른쪽, 좁게) -->
+      <div class="card w-fridge">
+        <div class="card-head">
+          <div class="card-title"><span class="dot fridge-dot"></span>냉장고</div>
+          <div class="card-link">준비중</div>
+        </div>
+        <div class="fridge-list">
+          <div class="fridge-item"><span class="name">계란</span><span class="days">D-1</span></div>
+          <div class="fridge-item"><span class="name">우유</span><span class="days">D-2</span></div>
+          <div class="fridge-item"><span class="name">두부</span><span class="days ok">D-6</span></div>
+          <div class="fridge-item"><span class="name">김치</span><span class="days ok">여유</span></div>
+        </div>
+      </div>
+
+    </section>
+
+    <footer class="note">위젯은 드래그로 위치를 바꾸고, 어떤 데이터를 보여줄지 직접 설정할 수 있어요.</footer>
+  </main>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', () => {
+    root.classList.toggle('dark');
+    btn.textContent = root.classList.contains('dark') ? '☀' : '☾';
+  });
+</script>
+
+</body>
+</html>
