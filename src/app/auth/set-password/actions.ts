@@ -26,11 +26,6 @@ export async function setPassword(
     return { error: '초대 세션이 만료됐어요. 초대 메일을 다시 요청해주세요' }
   }
 
-  const { error: updateError } = await supabase.auth.updateUser({ password })
-  if (updateError) {
-    return { error: '비밀번호 설정에 실패했어요' }
-  }
-
   const { data: invite } = await supabase
     .from('t_invite')
     .select('invite_id, role, status')
@@ -43,6 +38,11 @@ export async function setPassword(
   }
 
   acceptInvite(invite.status as 'PENDING' | 'ACCEPTED')
+
+  const { error: updateError } = await supabase.auth.updateUser({ password })
+  if (updateError) {
+    return { error: '비밀번호 설정에 실패했어요' }
+  }
 
   const { error: userInsertError } = await supabase.from('t_user').insert({
     user_id: user.id,
