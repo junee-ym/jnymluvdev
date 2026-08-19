@@ -39,6 +39,7 @@ yarn-error.log*
 
 # claude code local settings
 .claude/settings.local.json
+.claude/worktrees/
 
 # supabase local link cache
 supabase/.temp/
