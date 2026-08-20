@@ -108,7 +108,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .week-day.today .dow,.week-day.today .num{ color:#fff; }
 .week-day .tag{ margin-top:6px; font-size:8.5px; background:var(--surface-2); color:var(--ink-soft); border-radius:6px; padding:1.5px 4px; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .week-day.today .tag{ background:rgba(255,255,255,.22); color:#fff; }
-.week-day.wknd .dow,.week-day.wknd .num{ color:var(--gold); }
+.week-day.wknd .dow,.week-day.wknd .num,.week-day.holiday .dow,.week-day.holiday .num,.week-day.substitute .dow,.week-day.substitute .num{ color:var(--gold); }
 .week-day.today.wknd .dow,.week-day.today.wknd .num{ color:#fff; }
 
 .w-user{ grid-column:span 2; grid-row:span 2; align-items:center; text-align:center; justify-content:center; gap:8px; background:linear-gradient(150deg,var(--burgundy),var(--burgundy-deep)); border-color:transparent; }
@@ -239,6 +239,8 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .lightbox-body{ padding:20px; overflow-y:auto; }
 .lightbox-body label{ display:block; font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; margin-top:14px; }
 .lightbox-body label:first-child{ margin-top:0; }
+.lightbox-row{ display:flex; gap:10px; }
+.lightbox-row > div{ flex:1; min-width:0; }
 .lightbox-body input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:inherit; }
 .lightbox-actions{ display:flex; gap:8px; margin-top:20px; }
 .lightbox-actions button{ flex:1; padding:10px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; }

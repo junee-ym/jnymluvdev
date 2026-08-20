@@ -59,7 +59,17 @@ export default async function DashboardPage() {
               const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
               const tag = holiday?.name ?? dayEvents[0]?.title
               return (
-                <div className={`week-day${key === today ? ' today' : ''}`} key={key}>
+                <div
+                  className={[
+                    'week-day',
+                    key === today && 'today',
+                    (i === 0 || i === 6) && 'wknd',
+                    holiday?.type,
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  key={key}
+                >
                   <div className="dow">{DOWS[i]}</div>
                   <div className="num">{date.getDate()}</div>
                   {tag && <div className="tag">{tag}</div>}
