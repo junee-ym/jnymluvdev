@@ -161,7 +161,7 @@ export function CalendarClient({
                 >
                   <div className="day-num">{cell.date.getDate()}</div>
                   {holiday && <div className={`evt ${holiday.type}`}>{holiday.name}</div>}
-                  {dayEvents.slice(0, holiday ? 1 : 2).map((ev) => (
+                  {dayEvents.map((ev) => (
                     <div
                       className="evt"
                       key={ev.id}
