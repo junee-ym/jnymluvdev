@@ -92,15 +92,15 @@ export default async function DashboardPage() {
         <div className="card w-budget">
           <div className="card-head">
             <div className="card-title">가계부</div>
-            <span className="card-link">준비중</span>
+            <span className="badge-soon">준비중</span>
           </div>
-          <p style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>가계부 기능은 곧 만나보실 수 있어요.</p>
+          <p style={{ fontSize: 12.5 }}>가계부 기능은 곧 만나보실 수 있어요.</p>
         </div>
 
         <div className="card w-fridge">
           <div className="card-head">
             <div className="card-title">냉장고</div>
-            <span className="card-link">준비중</span>
+            <span className="badge-soon">준비중</span>
           </div>
           <p style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>냉장고 기능은 곧 만나보실 수 있어요.</p>
         </div>
