@@ -239,6 +239,8 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .lightbox-body{ padding:20px; overflow-y:auto; }
 .lightbox-body label{ display:block; font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; margin-top:14px; }
 .lightbox-body label:first-child{ margin-top:0; }
+.lightbox-row{ display:flex; gap:10px; }
+.lightbox-row > div{ flex:1; min-width:0; }
 .lightbox-body input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:inherit; }
 .lightbox-actions{ display:flex; gap:8px; margin-top:20px; }
 .lightbox-actions button{ flex:1; padding:10px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; }
