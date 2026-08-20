@@ -58,6 +58,7 @@ export default async function DashboardPage() {
               const holiday = holidays[key] ?? null
               const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
               const tag = dayEvents[0]?.title ?? holiday?.name
+              const moreCount = tag === dayEvents[0]?.title ? dayEvents.length - 1 : 0
               return (
                 <div
                   className={[
@@ -72,7 +73,12 @@ export default async function DashboardPage() {
                 >
                   <div className="dow">{DOWS[i]}</div>
                   <div className="num">{date.getDate()}</div>
-                  {tag && <div className="tag">{tag}</div>}
+                  {tag && (
+                    <div className="tag">
+                      {tag}
+                      {moreCount > 0 && <span className="tag-more"> +{moreCount}</span>}
+                    </div>
+                  )}
                 </div>
               )
             })}

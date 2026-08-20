@@ -108,6 +108,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .week-day.today .dow,.week-day.today .num{ color:#fff; }
 .week-day .tag{ margin-top:6px; font-size:8.5px; background:var(--surface-2); color:var(--ink-soft); border-radius:6px; padding:1.5px 4px; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .week-day.today .tag{ background:rgba(255,255,255,.22); color:#fff; }
+.week-day .tag-more{ font-weight:700; opacity:.8; }
 .week-day.wknd .dow,.week-day.wknd .num,.week-day.holiday .dow,.week-day.holiday .num,.week-day.substitute .dow,.week-day.substitute .num{ color:var(--gold); }
 .week-day.today.wknd .dow,.week-day.today.wknd .num{ color:#fff; }
 
