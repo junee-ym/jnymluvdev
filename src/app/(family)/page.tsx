@@ -28,7 +28,7 @@ export default async function DashboardPage() {
       .from('t_photo')
       .select('photo_id, taken_dt, locatn, caption, strpath, user_id, created')
       .order('taken_dt', { ascending: false })
-      .limit(5),
+      .limit(10),
     supabase
       .from('t_user')
       .select('user_id', { count: 'exact', head: true }),
