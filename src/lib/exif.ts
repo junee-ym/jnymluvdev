@@ -39,9 +39,59 @@ function parseExifSegment(view: DataView, start: number): string | null {
   return m ? `${m[1]}-${m[2]}-${m[3]}` : null
 }
 
-// IFD 하나를 읽어 태그->값 맵으로 반환. 필요한 타입(ASCII, LONG)만 지원.
-function readIfd(view: DataView, tiffStart: number, ifdOffset: number, little: boolean): Map<number, string | number> {
-  const result = new Map<number, string | number>()
+export type GpsCoords = { lat: number; lng: number }
+
+// JPEG EXIF에서 GPS 위도/경도(십진수)만 뽑아낸다. 구조는 getExifDate와 동일.
+export async function getExifGps(file: File): Promise<GpsCoords | null> {
+  if (file.type !== 'image/jpeg') return null
+
+  const buf = await file.slice(0, 256 * 1024).arrayBuffer()
+  const view = new DataView(buf)
+  if (view.getUint16(0) !== 0xffd8) return null // JPEG SOI 아님
+
+  let offset = 2
+  while (offset + 4 <= view.byteLength) {
+    const marker = view.getUint16(offset)
+    const size = view.getUint16(offset + 2)
+    if (marker === 0xffe1) return parseExifGpsSegment(view, offset + 4)
+    if ((marker & 0xff00) !== 0xff00) break
+    offset += 2 + size
+  }
+  return null
+}
+
+function parseExifGpsSegment(view: DataView, start: number): GpsCoords | null {
+  if (view.getUint32(start) !== 0x45786966) return null // "Exif"
+  const tiffStart = start + 6
+  const little = view.getUint16(tiffStart) === 0x4949
+  const ifd0Offset = tiffStart + view.getUint32(tiffStart + 4, little)
+
+  const ifd0 = readIfd(view, tiffStart, ifd0Offset, little)
+  const gpsIfdOffset = ifd0.get(0x8825) // GPSInfo IFD 포인터
+  if (typeof gpsIfdOffset !== 'number') return null
+
+  const gpsIfd = readIfd(view, tiffStart, tiffStart + gpsIfdOffset, little)
+  const lat = toDecimalDegrees(gpsIfd.get(0x0002), gpsIfd.get(0x0001))
+  const lng = toDecimalDegrees(gpsIfd.get(0x0004), gpsIfd.get(0x0003))
+  return lat !== null && lng !== null ? { lat, lng } : null
+}
+
+// GPSLatitude/Longitude는 [도, 분, 초] RATIONAL 3개 + N/S/E/W 기준 태그로 온다.
+function toDecimalDegrees(dms: unknown, ref: unknown): number | null {
+  if (!Array.isArray(dms) || dms.length !== 3 || typeof ref !== 'string') return null
+  const [deg, min, sec] = dms as number[]
+  const value = deg + min / 60 + sec / 3600
+  return ref === 'S' || ref === 'W' ? -value : value
+}
+
+// IFD 하나를 읽어 태그->값 맵으로 반환. 필요한 타입(ASCII, LONG, RATIONAL)만 지원.
+function readIfd(
+  view: DataView,
+  tiffStart: number,
+  ifdOffset: number,
+  little: boolean
+): Map<number, string | number | number[]> {
+  const result = new Map<number, string | number | number[]>()
   if (ifdOffset + 2 > view.byteLength) return result
   const count = view.getUint16(ifdOffset, little)
   for (let i = 0; i < count; i++) {
@@ -62,6 +112,17 @@ function readIfd(view: DataView, tiffStart: number, ifdOffset: number, little: b
     } else if (type === 4) {
       // LONG
       result.set(tag, view.getUint32(valueOffsetField, little))
+    } else if (type === 5) {
+      // RATIONAL: (분자, 분모) uint32 쌍, 값이 4바이트를 넘어 항상 외부 오프셋에 있다.
+      const dataOffset = tiffStart + view.getUint32(valueOffsetField, little)
+      if (dataOffset + numValues * 8 > view.byteLength) continue
+      const values: number[] = []
+      for (let j = 0; j < numValues; j++) {
+        const num = view.getUint32(dataOffset + j * 8, little)
+        const den = view.getUint32(dataOffset + j * 8 + 4, little)
+        values.push(den === 0 ? 0 : num / den)
+      }
+      result.set(tag, values)
     }
   }
   return result
