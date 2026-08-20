@@ -57,7 +57,7 @@ export default async function DashboardPage() {
               const key = formatDateKey(date)
               const holiday = holidays[key] ?? null
               const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
-              const tag = holiday?.name ?? dayEvents[0]?.title
+              const tag = dayEvents[0]?.title ?? holiday?.name
               return (
                 <div
                   className={[
