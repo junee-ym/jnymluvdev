@@ -19,7 +19,6 @@ export function RecentAlbum({ photos }: { photos: Photo[] }) {
   return (
     <>
       <div className="album-carousel">
-        <button type="button" className="album-nav" onClick={() => scrollByCard(-1)} aria-label="이전 사진">‹</button>
         <div className="album-track" ref={trackRef}>
           {photos.map((photo) => (
             <div className="ph" key={photo.id} onClick={() => setLightboxPhoto(photo)} style={{ cursor: 'pointer' }}>
@@ -27,7 +26,8 @@ export function RecentAlbum({ photos }: { photos: Photo[] }) {
             </div>
           ))}
         </div>
-        <button type="button" className="album-nav" onClick={() => scrollByCard(1)} aria-label="다음 사진">›</button>
+        <button type="button" className="album-nav prev" onClick={() => scrollByCard(-1)} aria-label="이전 사진">‹</button>
+        <button type="button" className="album-nav next" onClick={() => scrollByCard(1)} aria-label="다음 사진">›</button>
       </div>
       {lightboxPhoto && (
         <PhotoLightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
