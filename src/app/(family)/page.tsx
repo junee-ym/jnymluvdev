@@ -47,6 +47,15 @@ export default async function DashboardPage() {
       </div>
 
       <div className="bento">
+        <div className="card w-user">
+          <div className="avatar">{profile.name.slice(-2)}</div>
+          <div className="name">{profile.name}</div>
+          <div className="role">{profile.role}</div>
+          <div className="stats">
+            <div className="stat"><b>{memberCount ?? 0}</b><span>가족 구성원</span></div>
+          </div>
+        </div>
+
         <div className="card w-cal">
           <div className="card-head">
             <div className="card-title">이번 주 일정</div>
@@ -78,15 +87,6 @@ export default async function DashboardPage() {
                 </div>
               )
             })}
-          </div>
-        </div>
-
-        <div className="card w-user">
-          <div className="avatar">{profile.name.slice(-2)}</div>
-          <div className="name">{profile.name}</div>
-          <div className="role">{profile.role}</div>
-          <div className="stats">
-            <div className="stat"><b>{memberCount ?? 0}</b><span>가족 구성원</span></div>
           </div>
         </div>
 

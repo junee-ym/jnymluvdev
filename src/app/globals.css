@@ -246,6 +246,12 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .lightbox-actions button{ flex:1; padding:10px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; }
 .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
+/* ponytail: 1~2행(달력+사용자)만 auto 높이로, 나머지 행은 기존 108px 고정 유지 — 카드 배치 순서가 바뀌면 같이 손봐야 함 */
+@media (min-width:881px){
+  .bento{ grid-template-rows:minmax(108px,auto) minmax(108px,auto) 108px 108px 108px 108px; }
+  .w-cal{ align-self:stretch; }
+}
+
 @media (max-width:880px){
   .hamburger-btn{ display:flex; }
   .side{ position:fixed; top:0; left:0; bottom:0; z-index:40; background:var(--bg); transform:translateX(-100%); transition:transform .2s ease; box-shadow:0 0 40px rgba(0,0,0,.45); }
