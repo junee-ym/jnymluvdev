@@ -16,21 +16,21 @@ export default async function DashboardPage() {
   const weekEnd = formatDateKey(week[6])
   const today = formatDateKey(new Date())
 
-  const { data: eventRows } = await supabase
-    .from('t_event')
-    .select('event_id, event_dt, title')
-    .gte('event_dt', weekStart)
-    .lte('event_dt', weekEnd)
-
-  const { data: photoRows } = await supabase
-    .from('t_photo')
-    .select('photo_id, taken_dt, locatn, caption, strpath, user_id')
-    .order('taken_dt', { ascending: false })
-    .limit(5)
-
-  const { count: memberCount } = await supabase
-    .from('t_user')
-    .select('user_id', { count: 'exact', head: true })
+  const [{ data: eventRows }, { data: photoRows }, { count: memberCount }] = await Promise.all([
+    supabase
+      .from('t_event')
+      .select('event_id, event_dt, title')
+      .gte('event_dt', weekStart)
+      .lte('event_dt', weekEnd),
+    supabase
+      .from('t_photo')
+      .select('photo_id, taken_dt, locatn, caption, strpath, user_id')
+      .order('taken_dt', { ascending: false })
+      .limit(5),
+    supabase
+      .from('t_user')
+      .select('user_id', { count: 'exact', head: true }),
+  ])
 
   const recentPhotos = await toSignedPhotos(supabase, photoRows ?? [])
 

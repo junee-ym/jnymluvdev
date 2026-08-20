@@ -6,7 +6,11 @@ import type { Profile } from '@/lib/types'
 type ServerClient = Awaited<ReturnType<typeof createClient>>
 
 async function loadProfile(supabase: ServerClient): Promise<Profile | null> {
-  const { data: { user } } = await supabase.auth.getUser()
+  // getUser()는 Supabase Auth 서버로 네트워크 검증 왕복이 붙어서 느리다.
+  // proxy.ts가 매 요청마다 이미 getUser()로 검증을 마쳤으므로(요청 게이트키퍼),
+  // 여기서는 쿠키에서 로컬로 디코드만 하는 getSession()으로 충분 — 최종 방어선은 어차피 RLS.
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
   if (!user) return null
 
   const { data } = await supabase
