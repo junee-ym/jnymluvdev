@@ -30,10 +30,9 @@ export async function savePhotoMeta(
   const rawLng = formData.get('lng')
   const lat = Number(rawLat)
   const lng = Number(rawLng)
-  const locatn =
-    rawLat && rawLng && Number.isFinite(lat) && Number.isFinite(lng)
-      ? await reverseGeocode(lat, lng)
-      : null
+  const hasGps = rawLat && rawLng && Number.isFinite(lat) && Number.isFinite(lng)
+  if (!hasGps) console.error(`savePhotoMeta: GPS 없음 (path=${path}) — 클라이언트가 EXIF에서 위경도를 못 찾음`)
+  const locatn = hasGps ? await reverseGeocode(lat, lng) : null
 
   const supabase = await createClient()
   const { error } = await supabase.from('t_photo').insert({

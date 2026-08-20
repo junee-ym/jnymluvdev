@@ -77,8 +77,12 @@ function parseExifGpsSegment(view: DataView, start: number): GpsCoords | null {
 }
 
 // GPSLatitude/Longitude는 [도, 분, 초] RATIONAL 3개 + N/S/E/W 기준 태그로 온다.
+// 위치 서비스를 끄고 찍은 사진(삼성 갤럭시 등)은 GPS IFD 자체는 남기되 태그값을
+// 전부 0(ref도 널문자)으로 채워서 준다 — ref가 N/S/E/W가 아니면 그 placeholder이므로
+// (0, 0)으로 잘못 지오코딩하지 말고 "GPS 없음"으로 취급한다.
 function toDecimalDegrees(dms: unknown, ref: unknown): number | null {
   if (!Array.isArray(dms) || dms.length !== 3 || typeof ref !== 'string') return null
+  if (ref !== 'N' && ref !== 'S' && ref !== 'E' && ref !== 'W') return null
   const [deg, min, sec] = dms as number[]
   const value = deg + min / 60 + sec / 3600
   return ref === 'S' || ref === 'W' ? -value : value

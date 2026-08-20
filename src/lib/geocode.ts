@@ -14,9 +14,16 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
       // Nominatim 사용 정책상 User-Agent 필수.
       headers: { 'User-Agent': 'jnymluvdev-family-hub (evilet12@gmail.com)' },
     })
-    if (!res.ok) return null
-    return formatNominatimAddress(await res.json())
-  } catch {
+    if (!res.ok) {
+      console.error(`reverseGeocode 실패: nominatim ${res.status} ${res.statusText}`)
+      return null
+    }
+    const data = await res.json()
+    const address = formatNominatimAddress(data)
+    if (!address) console.error('reverseGeocode 실패: 응답에 display_name 없음', data)
+    return address
+  } catch (err) {
+    console.error('reverseGeocode 실패: fetch 예외', err)
     return null
   }
 }
