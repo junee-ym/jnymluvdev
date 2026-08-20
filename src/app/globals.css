@@ -124,7 +124,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .album-carousel{ display:flex; align-items:center; gap:6px; flex:1; margin-top:2px; min-width:0; }
 .album-track{ display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth; flex:1; scrollbar-width:none; }
 .album-track::-webkit-scrollbar{ display:none; }
-.album-track .ph{ flex:0 0 calc((100% - 40px) / 5); scroll-snap-align:start; }
+.album-track .ph{ flex:0 0 calc((100% - 20px) / 3); scroll-snap-align:start; }
 .album-nav{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; }
 .album-nav:hover{ background:var(--surface-2); }
 .ph{ border-radius:18px; position:relative; overflow:hidden; display:flex; align-items:flex-end; padding:7px; font-size:8.5px; color:#fff; font-weight:600; aspect-ratio:1; background:var(--surface-2); }
