@@ -1,15 +1,22 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { logout } from '@/app/(family)/actions'
 import type { Profile } from '@/lib/types'
 
 export function Topbar({ profile }: { profile: Profile }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <div className="top-strip">
-      <div className="topbar-left" />
+      <div className="topbar-left">
+        <label htmlFor="mobile-nav-toggle" className="icon-btn hamburger-btn" aria-label="메뉴 열기">☰</label>
+        <button type="button" className="icon-btn" onClick={() => router.back()} aria-label="뒤로가기">←</button>
+        <Link href="/" className="icon-btn" aria-label="홈으로">⌂</Link>
+      </div>
       <div className="topbar-right">
         <button className="avatar" onClick={() => setMenuOpen((v) => !v)}>
           {profile.name.slice(-2)}

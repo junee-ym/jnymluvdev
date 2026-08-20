@@ -48,7 +48,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
 .nav-item.active{ background:var(--burgundy-tint); color:var(--burgundy); font-weight:700; }
 .nav-soon{ margin-left:auto; font-size:9.5px; padding:2px 6px; border-radius:20px; background:var(--gold); color:#fff; font-weight:600;}
-.side-foot{ margin-top:auto; }
+.side-foot{ margin-top:0; }
 .invite-card{ background:var(--surface-2); border-radius:14px; padding:14px; font-size:12px; color:var(--ink-soft); line-height:1.5; }
 .invite-card b{ color:var(--ink); display:block; margin-bottom:4px; font-size:12.5px;}
 .invite-btn{ margin-top:10px; width:100%; padding:9px; border:none; border-radius:var(--radius-md); background:var(--success-cta); color:var(--ink-dark); font-size:12px; font-weight:700; cursor:pointer; }
@@ -58,6 +58,15 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .topbar-left{ display:flex; align-items:center; gap:8px; }
 .topbar-right{ display:flex; align-items:center; gap:8px; }
 .avatar{ width:34px;height:34px;border-radius:50%; display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px; flex-shrink:0; cursor:pointer; border:none; }
+
+/* icon buttons: hamburger / back / home in topbar */
+.icon-btn{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; color:var(--ink-soft); border:1px solid var(--line); cursor:pointer; background:var(--surface); font-size:14px; flex-shrink:0; text-decoration:none; transition:background-color .15s,color .15s,border-color .15s; }
+.icon-btn:hover{ color:var(--burgundy); border-color:var(--burgundy); background:var(--burgundy-tint); }
+.hamburger-btn{ display:none; }
+
+/* mobile nav drawer (CSS-only toggle via checkbox + :has()) */
+.mobile-nav-toggle{ display:none; }
+.side-backdrop{ display:none; }
 .user-menu{ position:absolute; top:42px; right:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md); padding:6px; min-width:140px; display:none; flex-direction:column; box-shadow:0 12px 40px rgba(88,101,242,.35); z-index:20; }
 .user-menu.open{ display:flex; }
 .user-menu button{ text-align:left; padding:8px 10px; border-radius:7px; border:none; background:transparent; font-size:12.5px; color:var(--ink); cursor:pointer; }
@@ -229,7 +238,10 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
 @media (max-width:880px){
-  .side{ display:none; }
+  .hamburger-btn{ display:flex; }
+  .side{ position:fixed; top:0; left:0; bottom:0; z-index:40; background:var(--bg); transform:translateX(-100%); transition:transform .2s ease; box-shadow:0 0 40px rgba(0,0,0,.45); }
+  .shell:has(#mobile-nav-toggle:checked) .side{ transform:translateX(0); }
+  .shell:has(#mobile-nav-toggle:checked) .side-backdrop{ display:block; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:35; }
   .main{ padding:16px 16px 50px; }
   .bento{ grid-template-columns:repeat(6,1fr); grid-auto-rows:92px; gap:12px; }
   .w-user{ grid-column:span 1; grid-row:span 2; order:-1; padding:10px 6px; gap:4px; }

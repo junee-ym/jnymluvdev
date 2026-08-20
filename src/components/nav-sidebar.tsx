@@ -46,6 +46,10 @@ export function NavSidebar({ profile }: { profile: Profile }) {
             key={item.href}
             href={item.href}
             className={`nav-item${pathname === item.href ? ' active' : ''}`}
+            onClick={() => {
+              const toggle = document.getElementById('mobile-nav-toggle') as HTMLInputElement | null
+              if (toggle) toggle.checked = false
+            }}
           >
             <span className="ic">{item.icon}</span> {item.label}
             {item.soon && <span className="nav-soon">준비중</span>}

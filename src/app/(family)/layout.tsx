@@ -10,6 +10,8 @@ export default async function FamilyLayout({ children }: { children: ReactNode }
   return (
     <ToastProvider>
       <div className="shell">
+        <input type="checkbox" id="mobile-nav-toggle" className="mobile-nav-toggle" />
+        <label htmlFor="mobile-nav-toggle" className="side-backdrop" aria-hidden="true" />
         <NavSidebar profile={profile} />
         <main className="main">
           <Topbar profile={profile} />
