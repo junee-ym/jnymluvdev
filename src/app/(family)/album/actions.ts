@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requireProfile } from '@/lib/auth/session'
 import { canModify } from '@/lib/auth/permissions'
 import { createClient } from '@/lib/supabase/server'
+import { reverseGeocode } from '@/lib/geocode'
 
 export type PhotoFormState = { error: string | null }
 
@@ -25,11 +26,21 @@ export async function savePhotoMeta(
     return { error: '사진 정보가 올바르지 않아요' }
   }
 
+  const rawLat = formData.get('lat')
+  const rawLng = formData.get('lng')
+  const lat = Number(rawLat)
+  const lng = Number(rawLng)
+  const locatn =
+    rawLat && rawLng && Number.isFinite(lat) && Number.isFinite(lng)
+      ? await reverseGeocode(lat, lng)
+      : null
+
   const supabase = await createClient()
   const { error } = await supabase.from('t_photo').insert({
     taken_dt: date,
     strpath: path,
     user_id: profile.userId,
+    locatn,
   })
 
   if (error) return { error: '사진 저장에 실패했어요' }

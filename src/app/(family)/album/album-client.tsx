@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDateKey } from '@/lib/calendar/grid'
-import { getExifDate } from '@/lib/exif'
+import { getExifDate, getExifGps } from '@/lib/exif'
 import { useToast } from '@/components/toast-provider'
 import { PhotoLightbox } from '@/components/photo-lightbox'
 import { savePhotoMeta } from './actions'
@@ -54,9 +54,15 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
       // 촬영일 기본값: EXIF DateTimeOriginal -> 파일 수정일 -> 오늘 순으로 시도.
       const exifDate = await getExifDate(file)
       const date = exifDate ?? (file.lastModified ? formatDateKey(new Date(file.lastModified)) : today)
+      // EXIF GPS가 있으면 좌표를 같이 보내 서버에서 역지오코딩(위치명 자동 채움)한다.
+      const gps = await getExifGps(file)
       const formData = new FormData()
       formData.set('path', path)
       formData.set('date', date)
+      if (gps) {
+        formData.set('lat', String(gps.lat))
+        formData.set('lng', String(gps.lng))
+      }
       // savePhotoMeta는 'use server' 함수이므로 이벤트 핸들러에서 직접 호출해
       // 반환값을 그대로 받을 수 있다 (useActionState의 dispatch를 거치지 않음 —
       // 그 dispatch는 호출 직후 결과를 안전하게 읽을 방법이 없다는 게 Task 20
