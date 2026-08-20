@@ -45,13 +45,8 @@ export async function updatePhoto(
 ): Promise<PhotoFormState> {
   const profile = await requireProfile()
   const photoId = String(formData.get('photoId') ?? '')
-  const date = String(formData.get('date') ?? '')
   const caption = String(formData.get('caption') ?? '')
   const location = String(formData.get('location') ?? '')
-
-  if (!date) {
-    return { error: '날짜를 입력해주세요' }
-  }
 
   const supabase = await createClient()
   const { data: existing } = await supabase
@@ -66,12 +61,13 @@ export async function updatePhoto(
 
   const { error } = await supabase
     .from('t_photo')
-    .update({ taken_dt: date, caption, locatn: location, updated: new Date().toISOString() })
+    .update({ caption, locatn: location, updated: new Date().toISOString() })
     .eq('photo_id', photoId)
 
   if (error) return { error: '사진 정보 저장에 실패했어요' }
 
   revalidatePath('/album')
+  revalidatePath('/')
   return { error: null }
 }
 
