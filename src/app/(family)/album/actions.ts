@@ -72,6 +72,7 @@ export async function updatePhoto(
   if (error) return { error: '사진 정보 저장에 실패했어요' }
 
   revalidatePath('/album')
+  revalidatePath('/')
   return { error: null }
 }
 

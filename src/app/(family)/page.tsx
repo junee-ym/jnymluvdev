@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/auth/session'
 import { buildWeekGrid, formatDateKey } from '@/lib/calendar/grid'
-import { getHoliday } from '@/lib/calendar/holidays'
+import { getHolidaysForDates } from '@/lib/calendar/holidays'
 import { toSignedPhotos } from '@/lib/photos'
+import { RecentAlbum } from './recent-album'
 
 const DOWS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -12,11 +13,12 @@ export default async function DashboardPage() {
   const supabase = await createClient()
 
   const week = buildWeekGrid(new Date())
-  const weekStart = formatDateKey(week[0])
-  const weekEnd = formatDateKey(week[6])
+  const weekDateKeys = week.map(formatDateKey)
+  const weekStart = weekDateKeys[0]
+  const weekEnd = weekDateKeys[6]
   const today = formatDateKey(new Date())
 
-  const [{ data: eventRows }, { data: photoRows }, { count: memberCount }] = await Promise.all([
+  const [{ data: eventRows }, { data: photoRows }, { count: memberCount }, holidays] = await Promise.all([
     supabase
       .from('t_event')
       .select('event_id, event_dt, title')
@@ -30,6 +32,7 @@ export default async function DashboardPage() {
     supabase
       .from('t_user')
       .select('user_id', { count: 'exact', head: true }),
+    getHolidaysForDates(weekDateKeys),
   ])
 
   const recentPhotos = await toSignedPhotos(supabase, photoRows ?? [])
@@ -52,7 +55,7 @@ export default async function DashboardPage() {
           <div className="week-row">
             {week.map((date, i) => {
               const key = formatDateKey(date)
-              const holiday = getHoliday(key)
+              const holiday = holidays[key] ?? null
               const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
               const tag = holiday?.name ?? dayEvents[0]?.title
               return (
@@ -80,13 +83,7 @@ export default async function DashboardPage() {
             <div className="card-title">최근 앨범</div>
             <Link href="/album" className="card-link">전체 보기 →</Link>
           </div>
-          <div className="album-grid">
-            {recentPhotos.map((photo) => (
-              <div className="ph" key={photo.id}>
-                <img src={photo.signedUrl} alt={photo.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-            ))}
-          </div>
+          <RecentAlbum photos={recentPhotos} />
         </div>
 
         <div className="card w-budget">
