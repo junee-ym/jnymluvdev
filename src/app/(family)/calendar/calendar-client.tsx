@@ -2,7 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react'
 import { buildMonthGrid, buildWeekGrid, formatDateKey } from '@/lib/calendar/grid'
-import { getHoliday } from '@/lib/calendar/holidays'
+import type { Holiday } from '@/lib/calendar/holidays'
 import { canModify } from '@/lib/auth/permissions'
 import type { CalendarEvent, Profile } from '@/lib/types'
 import { createEvent, deleteEvent, updateEvent, type EventFormState } from './actions'
@@ -22,6 +22,29 @@ export function CalendarClient({
   const [modalDate, setModalDate] = useState<string | null>(null)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const { showToast } = useToast()
+
+  // 서비스키를 클라이언트에 노출하지 않으려고 /api/holidays를 거쳐 연도별로 받아온다.
+  // 사용자가 월/주를 넘기며 걸치는 연도가 늘어날 때마다 캐시에 채운다.
+  const [holidaysByYear, setHolidaysByYear] = useState<Record<number, Record<string, Holiday>>>({})
+  useEffect(() => {
+    const years =
+      viewMode === 'month'
+        ? buildMonthGrid(cursor.getFullYear(), cursor.getMonth()).map((c) => c.date.getFullYear())
+        : buildWeekGrid(cursor).map((d) => d.getFullYear())
+    const missing = [...new Set(years)].filter((y) => !(y in holidaysByYear))
+    if (missing.length === 0) return
+    Promise.all(missing.map((y) => fetch(`/api/holidays?year=${y}`).then((r) => r.json())))
+      .then((results) => {
+        setHolidaysByYear((prev) => {
+          const next = { ...prev }
+          missing.forEach((y, i) => { next[y] = results[i] })
+          return next
+        })
+      })
+      .catch(() => {}) // 실패하면 그냥 공휴일 표시 없이 렌더 (달력 자체는 정상 동작)
+  }, [cursor, viewMode, holidaysByYear])
+  const getHoliday = (dateKey: string): Holiday | null =>
+    holidaysByYear[Number(dateKey.slice(0, 4))]?.[dateKey] ?? null
   const initialEventState: EventFormState = { error: null }
   const [createState, createFormAction, createPending] = useActionState(createEvent, initialEventState)
   const [updateState, updateFormAction, updatePending] = useActionState(updateEvent, initialEventState)
