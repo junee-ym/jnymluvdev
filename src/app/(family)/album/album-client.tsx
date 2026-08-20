@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDateKey } from '@/lib/calendar/grid'
+import { getExifDate } from '@/lib/exif'
 import { useToast } from '@/components/toast-provider'
 import { deletePhoto, savePhotoMeta, updatePhoto, type PhotoFormState } from './actions'
 import type { Photo, Profile } from '@/lib/types'
@@ -31,6 +32,34 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
   const [uploading, setUploading] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
 
+  // 모바일 뒤로가기(제스처/하드웨어 버튼)를 누르면 페이지를 벗어나는 대신 팝업만 닫히게 한다.
+  // 팝업을 열 때 history entry를 하나 쌓아두고, popstate(뒤로가기)가 오면 그걸 닫기 신호로 쓴다.
+  const pushedHistoryRef = useRef(false)
+  useEffect(() => {
+    function onPopState() {
+      if (pushedHistoryRef.current) {
+        pushedHistoryRef.current = false
+        setLightboxPhoto(null)
+      }
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  function openLightbox(photo: Photo) {
+    window.history.pushState({ lightbox: true }, '')
+    pushedHistoryRef.current = true
+    setLightboxPhoto(photo)
+  }
+
+  function closeLightbox() {
+    if (pushedHistoryRef.current) {
+      pushedHistoryRef.current = false
+      window.history.back()
+    }
+    setLightboxPhoto(null)
+  }
+
   const initialState: PhotoFormState = { error: null }
   const [updateState, updateFormAction, updatePending] = useActionState(updatePhoto, initialState)
   const [deleteState, deleteFormAction, deletePending] = useActionState(deletePhoto, initialState)
@@ -43,7 +72,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
   useEffect(() => {
     if (wasUpdatePending.current && !updatePending && !updateState.error) {
       showToast('사진 정보를 저장했어요')
-      setLightboxPhoto(null)
+      closeLightbox()
     }
     wasUpdatePending.current = updatePending
   }, [updatePending, updateState, showToast])
@@ -52,7 +81,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
   useEffect(() => {
     if (wasDeletePending.current && !deletePending && !deleteState.error) {
       showToast('사진을 삭제했어요')
-      setLightboxPhoto(null)
+      closeLightbox()
     }
     wasDeletePending.current = deletePending
   }, [deletePending, deleteState, showToast])
@@ -75,9 +104,12 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
         failed++
         continue
       }
+      // 촬영일 기본값: EXIF DateTimeOriginal -> 파일 수정일 -> 오늘 순으로 시도.
+      const exifDate = await getExifDate(file)
+      const date = exifDate ?? (file.lastModified ? formatDateKey(new Date(file.lastModified)) : today)
       const formData = new FormData()
       formData.set('path', path)
-      formData.set('date', today)
+      formData.set('date', date)
       // savePhotoMeta는 'use server' 함수이므로 이벤트 핸들러에서 직접 호출해
       // 반환값을 그대로 받을 수 있다 (useActionState의 dispatch를 거치지 않음 —
       // 그 dispatch는 호출 직후 결과를 안전하게 읽을 방법이 없다는 게 Task 20
@@ -133,7 +165,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
             <div className="album-section-title">{formatDateKR(date)}</div>
             <div className="photo-grid">
               {group.map((photo) => (
-                <div className="photo-thumb" key={photo.id} onClick={() => setLightboxPhoto(photo)}>
+                <div className="photo-thumb" key={photo.id} onClick={() => openLightbox(photo)}>
                   <img src={photo.signedUrl} alt={photo.caption ?? ''} />
                   {photo.caption && <div className="cap">{photo.caption}</div>}
                 </div>
@@ -144,7 +176,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
       )}
 
       {lightboxPhoto && (
-        <div className="lightbox-overlay open" onClick={(e) => { if (e.target === e.currentTarget) setLightboxPhoto(null) }}>
+        <div className="lightbox-overlay open" onClick={(e) => { if (e.target === e.currentTarget) closeLightbox() }}>
           <div className="lightbox">
             <img className="lightbox-img" src={lightboxPhoto.signedUrl} alt="" />
             <div className="lightbox-body">
@@ -158,7 +190,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
                 <input type="text" name="location" defaultValue={lightboxPhoto.location ?? ''} placeholder="예: 제주도" />
                 {updateState.error && <p style={{ color: 'var(--danger)', fontSize: 12 }}>{updateState.error}</p>}
                 <div className="lightbox-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setLightboxPhoto(null)}>닫기</button>
+                  <button type="button" className="btn-cancel" onClick={closeLightbox}>닫기</button>
                   <button type="submit" className="btn-save" disabled={updatePending}>저장</button>
                 </div>
               </form>
