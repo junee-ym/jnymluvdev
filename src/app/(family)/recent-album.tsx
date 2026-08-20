@@ -13,7 +13,7 @@ export function RecentAlbum({ photos }: { photos: Photo[] }) {
   function scrollByCard(dir: 1 | -1) {
     const track = trackRef.current
     if (!track) return
-    track.scrollBy({ left: dir * (track.clientWidth / 5), behavior: 'smooth' })
+    track.scrollBy({ left: dir * (track.clientWidth / 3), behavior: 'smooth' })
   }
 
   return (
