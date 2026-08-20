@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useToast } from '@/components/toast-provider'
 import { deletePhoto, updatePhoto, type PhotoFormState } from '@/app/(family)/album/actions'
 import type { Photo } from '@/lib/types'
@@ -68,16 +69,17 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deletePending, deleteState, showToast])
 
-  return (
+  return createPortal(
     <div className="lightbox-overlay open" onClick={(e) => { if (e.target === e.currentTarget) requestClose() }}>
       <div className="lightbox">
         <img className="lightbox-img" src={photo.signedUrl} alt="" />
         <div className="lightbox-body">
           <form action={updateFormAction}>
             <input type="hidden" name="photoId" value={photo.id} />
-            <p style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>
-              촬영일 {photo.date} · 등록일 {photo.registeredDate}
-            </p>
+            <label>등록일</label>
+            <input type="text" value={photo.registeredDate} readOnly />
+            <label>촬영일</label>
+            <input type="text" value={photo.date} readOnly />
             <label>메모</label>
             <input type="text" name="caption" defaultValue={photo.caption ?? ''} placeholder="예: 거실에서" />
             <label>장소 (선택)</label>
@@ -97,6 +99,7 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
