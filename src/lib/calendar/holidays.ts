@@ -1,87 +1,69 @@
 export type HolidayType = 'holiday' | 'substitute'
 export type Holiday = { name: string; type: HolidayType }
 
-// 매년 반복되는 양력 고정 공휴일(국경일 포함). 제헌절은 2008년부터 공휴일(휴무)은 아니지만
-// 국경일이라 함께 표시한다.
-const FIXED_HOLIDAYS: Record<string, string> = {
-  '01-01': '신정',
-  '03-01': '삼일절',
-  '05-05': '어린이날',
-  '06-06': '현충일',
-  '07-17': '제헌절',
-  '08-15': '광복절',
-  '10-03': '개천절',
-  '10-09': '한글날',
-  '12-25': '크리스마스',
-}
+// 한국천문연구원_특일 정보(공공데이터포털) getRestDeInfo — 공휴일만 돌려줌.
+// 설날/추석 음력 변환, 대체공휴일, 법 개정(예: 2026년 제헌절 부활)까지 정부 관보 값 그대로
+// 반영되므로 더 이상 연도별로 손으로 채워둘 필요가 없다.
+const API_URL = 'https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo'
 
-// 대체공휴일 대상(관공서의 공휴일에 관한 규정 제3조): 삼일절/어린이날/광복절/개천절/한글날 + 설날/추석.
-// 신정·현충일·크리스마스·제헌절은 대상 아님.
-const SUBSTITUTE_ELIGIBLE_FIXED = ['03-01', '05-05', '08-15', '10-03', '10-09']
+type ApiItem = { locdate: number; dateName: string; isHoliday: string }
 
-// 설날·추석은 음력 기준이라 매년 정부가 관보로 고시하는 양력 날짜를 미리 알 수 없다.
-// ponytail: 확인된 연도만 채워둠. 새 연도가 다가오면 관보 고시값으로 추가할 것.
-const LUNAR_HOLIDAYS: Record<number, { seollal: string; chuseok: string }> = {
-  2024: { seollal: '02-10', chuseok: '09-17' },
-  2025: { seollal: '01-29', chuseok: '10-06' },
-  2026: { seollal: '02-17', chuseok: '09-25' },
-  2027: { seollal: '02-06', chuseok: '09-15' },
-}
+// 서버 인스턴스가 살아있는 동안만 유효한 연도별 캐시(같은 인스턴스에서 재호출 방지용).
+// 인스턴스 재시작되면 비워지지만 API를 다시 부르면 되므로 영속 캐시는 두지 않는다.
+const yearCache = new Map<number, Promise<Record<string, Holiday>>>()
 
-function toDate(dateKey: string): Date {
-  const [y, m, d] = dateKey.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-function toKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-function addDays(date: Date, n: number): Date {
-  const d = new Date(date)
-  d.setDate(d.getDate() + n)
-  return d
-}
-function isWeekend(date: Date): boolean {
-  const day = date.getDay()
-  return day === 0 || day === 6
-}
+async function fetchFromApi(year: number): Promise<Record<string, Holiday>> {
+  const serviceKey = process.env.HOLIDAY_API_SERVICE_KEY
+  if (!serviceKey) throw new Error('HOLIDAY_API_SERVICE_KEY 환경변수가 없습니다')
 
-// 해당 연도의 공휴일(대체공휴일 포함)을 한 번에 계산한다.
-function buildYearHolidays(year: number): Record<string, Holiday> {
+  const params = new URLSearchParams({
+    serviceKey,
+    solYear: String(year),
+    numOfRows: '100',
+    _type: 'json',
+  })
+  const res = await fetch(`${API_URL}?${params}`)
+  if (!res.ok) throw new Error(`특일 정보 API 응답 실패: ${res.status}`)
+
+  const data = await res.json()
+  const header = data?.response?.header
+  if (header?.resultCode !== '00') {
+    throw new Error(`특일 정보 API 오류: ${header?.resultMsg ?? '알 수 없는 오류'}`)
+  }
+
+  const rawItem = data?.response?.body?.items?.item
+  const items: ApiItem[] = rawItem == null || rawItem === '' ? [] : Array.isArray(rawItem) ? rawItem : [rawItem]
+
   const result: Record<string, Holiday> = {}
-
-  for (const [mmdd, name] of Object.entries(FIXED_HOLIDAYS)) {
-    result[`${year}-${mmdd}`] = { name, type: 'holiday' }
+  for (const item of items) {
+    if (item.isHoliday !== 'Y') continue
+    const key = String(item.locdate).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3')
+    // 실제 응답은 "대체공휴일" 단독이 아니라 "대체공휴일(광복절)"처럼 원래 공휴일명이 괄호로 붙어서 온다.
+    result[key] = { name: item.dateName, type: item.dateName.startsWith('대체공휴일') ? 'substitute' : 'holiday' }
   }
-
-  const lunar = LUNAR_HOLIDAYS[year]
-  const lunarSpans: { name: string; days: string[] }[] = []
-  if (lunar) {
-    for (const [name, mmdd] of [['설날', lunar.seollal], ['추석', lunar.chuseok]] as const) {
-      const days = [-1, 0, 1].map((n) => toKey(addDays(toDate(`${year}-${mmdd}`), n)))
-      days.forEach((key) => { result[key] = { name, type: 'holiday' } })
-      lunarSpans.push({ name, days })
-    }
-  }
-
-  // 대상 공휴일이 토·일요일이거나 다른 공휴일과 겹치면, 마지막 날 다음의 첫 평일(비공휴일)로 대체.
-  const eligible = [
-    ...SUBSTITUTE_ELIGIBLE_FIXED.map((mmdd) => ({ name: FIXED_HOLIDAYS[mmdd], days: [`${year}-${mmdd}`] })),
-    ...lunarSpans,
-  ]
-  for (const { name, days } of eligible) {
-    const triggered = days.some((key) => isWeekend(toDate(key)) || result[key]?.name !== name)
-    if (!triggered) continue
-    let cursor = addDays(toDate(days[days.length - 1]), 1)
-    while (isWeekend(cursor) || result[toKey(cursor)]) {
-      cursor = addDays(cursor, 1)
-    }
-    result[toKey(cursor)] = { name: `${name} 대체공휴일`, type: 'substitute' }
-  }
-
   return result
 }
 
-export function getHoliday(dateKey: string): Holiday | null {
-  const year = Number(dateKey.slice(0, 4))
-  return buildYearHolidays(year)[dateKey] ?? null
+// 해당 연도의 공휴일 맵을 가져온다. API 실패 시 폴백 없이 조용히 빈 맵을 반환한다
+// (달력 자체는 정상 렌더되고, 공휴일 표시만 그 해에 한해 빠진다). 실패는 캐시하지 않아
+// 다음 요청에서 재시도된다.
+export async function fetchYearHolidays(year: number): Promise<Record<string, Holiday>> {
+  const cached = yearCache.get(year)
+  if (cached) return cached
+
+  const promise = fetchFromApi(year).catch((err) => {
+    console.error(`[holidays] ${year}년 공휴일 조회 실패`, err)
+    yearCache.delete(year)
+    return {}
+  })
+  yearCache.set(year, promise)
+  return promise
+}
+
+// 여러 날짜(연도가 섞여 있을 수 있음, 예: 주간 뷰가 연말연시에 걸칠 때)에 대해
+// 필요한 연도만 모아 한 번씩 조회하고 합친다.
+export async function getHolidaysForDates(dateKeys: string[]): Promise<Record<string, Holiday>> {
+  const years = [...new Set(dateKeys.map((k) => Number(k.slice(0, 4))))]
+  const maps = await Promise.all(years.map(fetchYearHolidays))
+  return Object.assign({}, ...maps)
 }
