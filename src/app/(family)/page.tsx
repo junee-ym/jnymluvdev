@@ -47,46 +47,48 @@ export default async function DashboardPage() {
       </div>
 
       <div className="bento">
-        <div className="card w-user">
-          <div className="avatar">{profile.name.slice(-2)}</div>
-          <div className="name">{profile.name}</div>
-          <div className="role">{profile.role}</div>
-          <div className="stats">
-            <div className="stat"><b>{memberCount ?? 0}</b><span>가족 구성원</span></div>
+        <div className="cal-user-row">
+          <div className="card w-user">
+            <div className="avatar">{profile.name.slice(-2)}</div>
+            <div className="name">{profile.name}</div>
+            <div className="role">{profile.role}</div>
+            <div className="stats">
+              <div className="stat"><b>{memberCount ?? 0}</b><span>가족 구성원</span></div>
+            </div>
           </div>
-        </div>
 
-        <div className="card w-cal">
-          <div className="card-head">
-            <div className="card-title">이번 주 일정</div>
-            <Link href="/calendar" className="card-link">달력 열기 →</Link>
-          </div>
-          <div className="week-row">
-            {week.map((date, i) => {
-              const key = formatDateKey(date)
-              const holiday = holidays[key] ?? null
-              const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
-              return (
-                <div
-                  className={[
-                    'week-day',
-                    key === today && 'today',
-                    (i === 0 || i === 6) && 'wknd',
-                    holiday?.type,
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  key={key}
-                >
-                  <div className="dow">{DOWS[i]}</div>
-                  <div className="num">{date.getDate()}</div>
-                  {holiday && <div className="tag">{holiday.name}</div>}
-                  {dayEvents.map((e) => (
-                    <div className="tag" key={e.event_id}>{e.title}</div>
-                  ))}
-                </div>
-              )
-            })}
+          <div className="card w-cal">
+            <div className="card-head">
+              <div className="card-title">이번 주 일정</div>
+              <Link href="/calendar" className="card-link">달력 열기 →</Link>
+            </div>
+            <div className="week-row">
+              {week.map((date, i) => {
+                const key = formatDateKey(date)
+                const holiday = holidays[key] ?? null
+                const dayEvents = (eventRows ?? []).filter((e) => e.event_dt === key)
+                return (
+                  <div
+                    className={[
+                      'week-day',
+                      key === today && 'today',
+                      (i === 0 || i === 6) && 'wknd',
+                      holiday?.type,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    key={key}
+                  >
+                    <div className="dow">{DOWS[i]}</div>
+                    <div className="num">{date.getDate()}</div>
+                    {holiday && <div className="tag">{holiday.name}</div>}
+                    {dayEvents.map((e) => (
+                      <div className="tag" key={e.event_id}>{e.title}</div>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 

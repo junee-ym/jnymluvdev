@@ -89,7 +89,12 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .edit-layout{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; border-radius:8px; color:var(--ink-soft); border:1px solid var(--line); cursor:pointer; background:var(--surface); font-size:14px; flex-shrink:0; transition:background-color .15s; }
 .edit-layout:hover{ color:var(--burgundy); border-color:var(--burgundy); background:var(--burgundy-tint); }
 
-.bento{ display:grid; grid-template-columns:repeat(6,1fr); grid-template-rows:auto; grid-auto-rows:108px; gap:18px; position:relative; }
+.bento{ display:grid; grid-template-columns:repeat(6,1fr); grid-template-rows:auto; grid-auto-rows:108px; gap:18px; }
+/* ponytail: cal+user를 한 칸(span6)에 넣고 position:relative 래퍼로 감싼 뒤 w-user만 absolute로 뺀다 —
+   w-cal(정상 흐름)의 내용 높이가 래퍼 높이를 그대로 결정하고, w-user는 그 래퍼에 꽉 채워져 따라간다.
+   grid item에 직접 position:absolute를 주는 방식은 containing block이 grid area가 아니라
+   .bento 전체가 되어버려서(실측 확인) 못 씀 — 래퍼가 필요한 이유 */
+.cal-user-row{ grid-column:span 6; grid-row:1; position:relative; }
 .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-xl); padding:22px 24px; position:relative; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 3px 68px rgba(88,101,242,.10); transition:box-shadow .15s, transform .15s; cursor:default; }
 .card:hover{ box-shadow:0 3px 68px rgba(88,101,242,.22); transform:translateY(-2px); }
 .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
@@ -98,7 +103,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .card-link{ font-size:11px; color:var(--ink-soft); opacity:.65; font-weight:700; background:none; border:none; cursor:pointer; padding:0; font-family:inherit; }
 .card:hover .card-link{ opacity:1; color:var(--burgundy); }
 
-.w-cal{ grid-column:3 / span 4; grid-row:1; }
+.w-cal{ margin-left:calc(33.3333% + 9px); }
 .cal-dot{ background:var(--sage); }
 .week-row{ display:flex; justify-content:space-between; gap:6px; }
 .week-day{ flex:1; min-width:0; text-align:center; padding:9px 0 10px; border-radius:14px; }
@@ -111,8 +116,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .week-day.wknd .dow,.week-day.wknd .num,.week-day.holiday .dow,.week-day.holiday .num,.week-day.substitute .dow,.week-day.substitute .num{ color:var(--gold); }
 .week-day.today.wknd .dow,.week-day.today.wknd .num{ color:#fff; }
 
-/* ponytail: position:absolute로 grid track 사이징에서 빠져서 옆 w-cal의 실제 높이(달력 내용만큼)를 그대로 따라감 — grid item이 grid-column/row로 확정 영역을 가지면 그 영역이 containing block이 되는 CSS Grid 사양 이용, .bento의 position:relative가 이걸 성립시킴 */
-.w-user{ grid-column:1 / span 2; grid-row:1; position:absolute; inset:0; align-items:center; text-align:center; justify-content:center; gap:8px; background:linear-gradient(150deg,var(--burgundy),var(--burgundy-deep)); border-color:transparent; }
+.w-user{ position:absolute; top:0; left:0; bottom:0; width:calc(33.3333% - 9px); align-items:center; text-align:center; justify-content:center; gap:8px; background:linear-gradient(150deg,var(--burgundy),var(--burgundy-deep)); border-color:transparent; }
 .w-user .avatar{ width:52px;height:52px; font-size:17px; margin:0 auto; cursor:default; background:rgba(255,255,255,.2) !important; color:#fff; }
 .w-user .name{ font-weight:900; font-size:14.5px; margin-top:2px; color:#fff; }
 .w-user .role{ font-size:11px; color:rgba(255,255,255,.72); }
@@ -254,8 +258,8 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
   .shell:has(#mobile-nav-toggle:checked) .side-backdrop{ display:block; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:35; }
   .main{ padding:16px 16px 50px; }
   .bento{ grid-template-columns:repeat(6,1fr); grid-auto-rows:minmax(92px,auto); gap:12px; }
-  .w-user{ grid-column:1 / span 1; grid-row:1; padding:10px 6px; gap:4px; }
-  .w-cal{ grid-column:2 / span 5; grid-row:1; }
+  .w-user{ width:calc(16.6667% - 6px); padding:10px 6px; gap:4px; }
+  .w-cal{ margin-left:calc(16.6667% + 6px); }
   .w-user .avatar{ width:30px;height:30px;font-size:11px; }
   .w-user .name{ font-size:10px; }
   .w-user .role,.w-user .stats{ display:none; }
