@@ -19,7 +19,8 @@ export type CalendarEvent = {
 
 export type Photo = {
   id: string
-  date: string
+  date: string // 촬영일 (taken_dt)
+  registeredDate: string // 등록일 (created, 업로드된 날짜)
   location: string | null
   caption: string | null
   // strpath(스토리지 경로)는 클라이언트로 내려보내지 않는다. 삭제 시 서버가

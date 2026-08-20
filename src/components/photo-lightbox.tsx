@@ -75,7 +75,9 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
         <div className="lightbox-body">
           <form action={updateFormAction}>
             <input type="hidden" name="photoId" value={photo.id} />
-            <label>날짜</label>
+            <label>
+              촬영일 <span style={{ fontWeight: 400, color: 'var(--ink-soft)' }}>· 등록일 {photo.registeredDate}</span>
+            </label>
             <input type="date" name="date" defaultValue={photo.date} required />
             <label>메모</label>
             <input type="text" name="caption" defaultValue={photo.caption ?? ''} placeholder="예: 거실에서" />
