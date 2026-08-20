@@ -98,17 +98,16 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .card-link{ font-size:11px; color:var(--ink-soft); opacity:.65; font-weight:700; background:none; border:none; cursor:pointer; padding:0; font-family:inherit; }
 .card:hover .card-link{ opacity:1; color:var(--burgundy); }
 
-.w-cal{ grid-column:span 4; grid-row:span 2; }
+.w-cal{ grid-column:span 4; grid-row:span 2; align-self:start; }
 .cal-dot{ background:var(--sage); }
-.week-row{ display:flex; justify-content:space-between; margin-top:auto; gap:6px; }
+.week-row{ display:flex; justify-content:space-between; gap:6px; }
 .week-day{ flex:1; text-align:center; padding:9px 0 10px; border-radius:14px; }
 .week-day .dow{ font-size:10.5px; color:var(--ink-soft); font-weight:600; margin-bottom:6px;}
 .week-day .num{ font-size:15px; font-weight:700; }
 .week-day.today{ background:var(--burgundy); border-radius:999px; }
 .week-day.today .dow,.week-day.today .num{ color:#fff; }
-.week-day .tag{ margin-top:6px; font-size:8.5px; background:var(--surface-2); color:var(--ink-soft); border-radius:6px; padding:1.5px 4px; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.week-day .tag{ margin-top:6px; font-size:8.5px; background:var(--surface-2); color:var(--ink-soft); border-radius:6px; padding:1.5px 4px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .week-day.today .tag{ background:rgba(255,255,255,.22); color:#fff; }
-.week-day .tag-more{ font-weight:700; opacity:.8; }
 .week-day.wknd .dow,.week-day.wknd .num,.week-day.holiday .dow,.week-day.holiday .num,.week-day.substitute .dow,.week-day.substitute .num{ color:var(--gold); }
 .week-day.today.wknd .dow,.week-day.today.wknd .num{ color:#fff; }
 
