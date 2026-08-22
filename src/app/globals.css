@@ -1,5 +1,25 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
 
+/* 왼쪽 사이드바 메뉴 전용 폰트 */
+@font-face {
+  font-family: 'GMarketSans';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff') format('woff');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GMarketSans';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff') format('woff');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GMarketSans';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+}
+
 /* Discord 레퍼런스 톤: 인디고 캔버스 + 블러플/그린/마젠타. 항상-다크(라이트/다크 토글 없음). */
 :root{
   --bg:#0A0D3A; --surface:#1E2353; --surface-2:#23272A; --ink:#FFFFFF; --ink-soft:rgba(255,255,255,.62);
@@ -42,7 +62,7 @@ button{ font-family:inherit; }
 .brand-mark{ width:32px;height:32px;border-radius:8px; background:var(--burgundy); display:flex;align-items:center;justify-content:center; color:#fff; font-size:14px; font-weight:600; }
 .brand-name{ font-weight:700; font-size:16px; letter-spacing:-.2px; }
 .brand-sub{ font-size:11px; color:var(--ink-soft); margin-top:1px; }
-nav{ display:flex; flex-direction:column; gap:2px; }
+nav{ display:flex; flex-direction:column; gap:2px; font-family:'GMarketSans','Pretendard Variable',Pretendard,-apple-system,sans-serif; }
 .nav-item{ display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:10px; font-size:14px; font-weight:500; color:var(--ink-soft); cursor:pointer; user-select:none; text-decoration:none; transition:background .15s,color .15s; }
 .nav-item .ic{ width:18px; text-align:center; font-size:15px; opacity:.9;}
 .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
