@@ -145,7 +145,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .ph.p1{ background:linear-gradient(150deg,var(--burgundy),#8548D6);} .ph.p2{ background:linear-gradient(150deg,#8548D6,var(--gold));}
 .ph.p3{ background:linear-gradient(150deg,var(--gold),#F07AA5);} .ph.p4{ background:linear-gradient(150deg,var(--burgundy-bright),var(--burgundy));} .ph.p5{ background:linear-gradient(150deg,var(--burgundy-deep),var(--gold));}
 
-.w-budget{ grid-column:span 4; grid-row:span 2; background:linear-gradient(135deg,var(--gold),var(--burgundy)); border-color:transparent; }
+.w-budget{ grid-column:span 3; grid-row:span 2; background:linear-gradient(135deg,var(--gold),var(--burgundy)); border-color:transparent; }
 .w-budget .card-title{ color:rgba(255,255,255,.85); }
 .budget-dot{ background:#fff; }
 .badge-soon{ font-size:13px; font-weight:700; color:#fff; background:rgba(255,255,255,.22); border-radius:999px; padding:3px 10px; }
@@ -159,7 +159,7 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .budget-row{ display:flex; align-items:center; justify-content:space-between; font-size:14.5px; color:var(--ink-soft); }
 .budget-row b{ color:var(--ink); font-weight:600; }
 
-.w-fridge{ grid-column:span 2; grid-row:span 2; background:var(--surface-2); border-color:transparent; }
+.w-fridge{ grid-column:span 3; grid-row:span 2; background:var(--surface-2); border-color:transparent; }
 .fridge-dot{ background:#fff; }
 .fridge-list{ display:flex; flex-direction:column; gap:8px; margin-top:2px; }
 .fridge-item{ display:flex; align-items:center; justify-content:space-between; font-size:15px; }
@@ -210,11 +210,14 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .shell[data-theme="oneui-light"] .greet{ font-weight:700; letter-spacing:-.5px; }
 .shell[data-theme="oneui-light"] .greet span{ color:var(--burgundy); }
 
-.shell[data-theme="oneui-light"] .w-budget{ background:var(--surface); border:1px solid var(--line); }
+/* 삼성카드 홈 3행(금융/쇼핑 균등 2단 파스텔 프로모카드)에 맞춰 가계부:냉장고를 1:1 + 옅은 틴트로 —
+   One UI 컬러 가이드의 "Type 2: 앱 색상표에서 가져온 옅은 색" focus-block 규칙과도 맞음(새 색 추가 없이
+   기존 블루/레드 틴트만 사용). */
+.shell[data-theme="oneui-light"] .w-budget{ background:var(--burgundy-tint); border:none; }
 .shell[data-theme="oneui-light"] .w-budget .card-title{ color:var(--ink-soft); }
 .shell[data-theme="oneui-light"] .w-budget p, .shell[data-theme="oneui-light"] .w-fridge p{ color:var(--ink-soft) !important; }
-.shell[data-theme="oneui-light"] .badge-soon{ color:var(--burgundy); background:var(--burgundy-tint); }
-.shell[data-theme="oneui-light"] .w-fridge{ background:var(--surface-2); border:1px solid var(--line); }
+.shell[data-theme="oneui-light"] .badge-soon{ color:var(--burgundy); background:rgba(255,255,255,.7); }
+.shell[data-theme="oneui-light"] .w-fridge{ background:var(--gold-tint); border:none; }
 
 /* wide PC 모니터: 좁은 폭 고정 탓에 글자가 상대적으로 작아 보이던 문제 보정 */
 @media (min-width:1440px){
@@ -332,8 +335,8 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
      .w-album 높이는 이 행 혼자라 여전히 명시 필요(내용 대신 정한 값), 데스크톱 대비 1.5배 */
   .w-album{ grid-column:span 6; height:294px; }
   .album-track .ph{ flex:0 0 calc((100% - 20px) / 3); } /* 모바일: 한 화면 3장 (gap 10px * 2) */
-  .w-budget{ grid-column:span 4; }
-  .w-fridge{ grid-column:span 2; }
+  .w-budget{ grid-column:span 3; }
+  .w-fridge{ grid-column:span 3; }
   .card{ padding:14px; border-radius:var(--radius-lg); }
   .greet{ font-size:21px; }
 
