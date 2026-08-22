@@ -14,8 +14,8 @@ export function Topbar({ profile }: { profile: Profile }) {
     <div className="top-strip">
       <div className="topbar-left">
         <label htmlFor="mobile-nav-toggle" className="icon-btn hamburger-btn" aria-label="메뉴 열기">☰</label>
-        <button type="button" className="icon-btn" onClick={() => router.back()} aria-label="뒤로가기">←</button>
         <Link href="/" className="icon-btn" aria-label="홈으로">⌂</Link>
+        <button type="button" className="icon-btn" onClick={() => router.back()} aria-label="뒤로가기">←</button>
       </div>
       <div className="topbar-right">
         <button className="avatar" onClick={() => setMenuOpen((v) => !v)}>
