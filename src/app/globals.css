@@ -48,6 +48,8 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
 .nav-item.active{ background:var(--burgundy-tint); color:var(--burgundy); font-weight:700; }
 .nav-soon{ margin-left:auto; font-size:9.5px; padding:2px 6px; border-radius:20px; background:var(--gold); color:#fff; font-weight:600;}
+/* One UI List subheader: 관련 항목을 시각적 묶음으로 구분(대문자·강한 색으로 강조하지 않음) */
+.nav-subheader{ font-size:11px; font-weight:600; color:var(--ink-soft); padding:14px 12px 4px; }
 .side-foot{ margin-top:0; }
 .invite-card{ background:var(--surface-2); border-radius:14px; padding:14px; font-size:12px; color:var(--ink-soft); line-height:1.5; }
 .invite-card b{ color:var(--ink); display:block; margin-bottom:4px; font-size:12.5px;}

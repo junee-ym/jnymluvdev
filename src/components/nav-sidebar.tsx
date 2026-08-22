@@ -8,14 +8,18 @@ import { isOperatorOrAdmin } from '@/lib/auth/permissions'
 import { useToast } from './toast-provider'
 import type { Profile } from '@/lib/types'
 
+// One UI List 컴포넌트 가이드: "관련 항목을 시각적으로 묶을 때 subheader 사용" —
+// 실사용 가능한 메뉴와 준비중인 메뉴를 subheader로 분리해 나열(docs/design/DESIGN-samsung.md 참고).
 const NAV_ITEMS = [
   { href: '/', label: '대시보드', icon: '▦' },
   { href: '/calendar', label: '달력', icon: '📅' },
   { href: '/album', label: '앨범', icon: '🖼' },
-  { href: '/budget', label: '가계부', icon: '💳', soon: true },
-  { href: '/fridge', label: '냉장고', icon: '❄︎', soon: true },
-  { href: '/trip', label: '여행일기', icon: '✈', soon: true },
-  { href: '/board', label: '게시판', icon: '🗒', soon: true },
+]
+const NAV_ITEMS_SOON = [
+  { href: '/budget', label: '가계부', icon: '💳' },
+  { href: '/fridge', label: '냉장고', icon: '❄︎' },
+  { href: '/trip', label: '여행일기', icon: '✈' },
+  { href: '/board', label: '게시판', icon: '🗒' },
 ]
 
 const initialInviteState: InviteState = { error: null, success: null }
@@ -52,7 +56,21 @@ export function NavSidebar({ profile }: { profile: Profile }) {
             }}
           >
             <span className="ic">{item.icon}</span> {item.label}
-            {item.soon && <span className="nav-soon">준비중</span>}
+          </Link>
+        ))}
+        <div className="nav-subheader">준비중</div>
+        {NAV_ITEMS_SOON.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`nav-item${pathname === item.href ? ' active' : ''}`}
+            onClick={() => {
+              const toggle = document.getElementById('mobile-nav-toggle') as HTMLInputElement | null
+              if (toggle) toggle.checked = false
+            }}
+          >
+            <span className="ic">{item.icon}</span> {item.label}
+            <span className="nav-soon">준비중</span>
           </Link>
         ))}
       </nav>
