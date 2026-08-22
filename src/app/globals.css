@@ -89,12 +89,12 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .edit-layout{ display:flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; border-radius:8px; color:var(--ink-soft); border:1px solid var(--line); cursor:pointer; background:var(--surface); font-size:14px; flex-shrink:0; transition:background-color .15s; }
 .edit-layout:hover{ color:var(--burgundy); border-color:var(--burgundy); background:var(--burgundy-tint); }
 
-.bento{ display:grid; grid-template-columns:repeat(6,1fr); grid-template-rows:auto; grid-auto-rows:108px; gap:18px; }
-/* One UI 대형화면 가이드(docs/design/DESIGN-samsung.md의 Large screen & Foldable 표)의
-   published pane 비율(medium 42:58 / expanded 38:62)을 그대로 적용한 2열 grid.
-   CSS Grid는 기본이 align-items:stretch라 두 칸 다 행 높이만큼 자동으로 늘어나므로
-   —— 예전의 position:absolute + containing-block 트릭(실기기 렌더 버그 이력 있었음) 불필요. */
-.cal-user-row{ grid-column:span 6; grid-row:1; display:grid; grid-template-columns:42fr 58fr; gap:18px; }
+.bento{ display:grid; grid-template-columns:repeat(6,1fr); grid-template-rows:auto; grid-auto-rows:108px; gap:20px; }
+/* 삼성카드 홈페이지 "마이" 위젯 영역(main_my_top/mid/event/bottom) 실측 구조를 그대로 따름:
+   392px 1유닛을 24px 거터로 1개(전체폭 1/3)·2개(2/3)·3개(전체) 조합해 반복하는 모듈 그리드 —
+   w-budget(2유닛):w-fridge(1유닛)와 같은 1:2 리듬을 사용자카드:달력에도 그대로 적용.
+   CSS Grid 기본 stretch로 두 칸 높이가 자동 일치(예전 position:absolute 트릭 불필요). */
+.cal-user-row{ grid-column:span 6; grid-row:1; display:grid; grid-template-columns:1fr 2fr; gap:20px; }
 .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-xl); padding:22px 24px; position:relative; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 3px 68px rgba(88,101,242,.10); transition:box-shadow .15s, transform .15s; cursor:default; }
 .card:hover{ box-shadow:0 3px 68px rgba(88,101,242,.22); transform:translateY(-2px); }
 .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
@@ -219,7 +219,6 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 /* wide PC 모니터: 좁은 폭 고정 탓에 글자가 상대적으로 작아 보이던 문제 보정 */
 @media (min-width:1440px){
   .main{ max-width:1560px; padding:26px 56px 60px; }
-  .cal-user-row{ grid-template-columns:38fr 62fr; } /* One UI expanded 창급(≥960dp) pane 비율 */
   .greet{ font-size:42px; }
   .card{ padding:26px 28px; }
   .card-title{ font-size:14px; }
