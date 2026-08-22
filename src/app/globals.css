@@ -170,6 +170,45 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 
 footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-align:center; }
 
+/* ---------- One UI Light (대시보드 전용) ----------
+   .shell[data-theme="oneui-light"]에만 적용 — src/components/shell-theme.tsx가 대시보드('/')일 때만
+   이 속성을 붙이므로 다른 페이지는 계속 기존 다크 테마. docs/design/DESIGN-samsung.md 기준:
+   시스템 블루 하나만 포인트로 쓰고 배경은 차분한 모노톤, 장식 그라디언트는 지양, 깊이는 옅은 그림자
+   하나만(blur+dim+shadow 중첩 금지), 버튼류 radius는 18dp. */
+.shell[data-theme="oneui-light"]{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF0F3; --ink:#171717; --ink-soft:rgba(23,23,23,.6);
+  --line:rgba(0,0,0,.08);
+  --burgundy:#0072DE; --burgundy-deep:#005BB0; --burgundy-bright:#0381FE; --burgundy-tint:rgba(0,114,222,.1);
+  --gold:#E2492D; --gold-tint:rgba(226,73,45,.1);
+  --sage:rgba(23,23,23,.6);
+  --success-cta:#0072DE; --ink-dark:#FFFFFF; --danger:#D93025;
+  --radius-lg:16px; --radius-md:18px; --radius-xl:20px;
+}
+.shell[data-theme="oneui-light"] .card{ box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.shell[data-theme="oneui-light"] .card:hover{ box-shadow:0 4px 14px rgba(0,0,0,.08); transform:none; }
+.shell[data-theme="oneui-light"] .avatar{ background:var(--burgundy); }
+.shell[data-theme="oneui-light"] .user-menu{ box-shadow:0 8px 28px rgba(0,0,0,.12); }
+.shell[data-theme="oneui-light"] .album-nav{ background:rgba(255,255,255,.92); color:var(--ink-soft); border:1px solid var(--line); }
+.shell[data-theme="oneui-light"] .album-nav:hover{ background:var(--surface-2); }
+
+/* 카드형 위젯의 장식 그라디언트 제거 → 모노톤 서피스 + 블루 포인트만 (One UI: 시스템 블루 하나, 장식 그라디언트는 예외적으로만) */
+.shell[data-theme="oneui-light"] .w-user{ background:var(--surface); border:1px solid var(--line); }
+.shell[data-theme="oneui-light"] .w-user .avatar{ background:var(--burgundy) !important; color:#fff; }
+.shell[data-theme="oneui-light"] .w-user .name{ color:var(--ink); }
+.shell[data-theme="oneui-light"] .w-user .role{ color:var(--ink-soft); }
+.shell[data-theme="oneui-light"] .w-user .stat b{ color:var(--ink); }
+.shell[data-theme="oneui-light"] .w-user .stat span{ color:var(--ink-soft); }
+
+.shell[data-theme="oneui-light"] .greet-eyebrow{ background:none; color:var(--ink-soft); text-transform:none; letter-spacing:0; font-weight:600; padding:0; }
+.shell[data-theme="oneui-light"] .greet{ font-weight:700; letter-spacing:-.5px; }
+.shell[data-theme="oneui-light"] .greet span{ color:var(--burgundy); }
+
+.shell[data-theme="oneui-light"] .w-budget{ background:var(--surface); border:1px solid var(--line); }
+.shell[data-theme="oneui-light"] .w-budget .card-title{ color:var(--ink-soft); }
+.shell[data-theme="oneui-light"] .w-budget p, .shell[data-theme="oneui-light"] .w-fridge p{ color:var(--ink-soft) !important; }
+.shell[data-theme="oneui-light"] .badge-soon{ color:var(--burgundy); background:var(--burgundy-tint); }
+.shell[data-theme="oneui-light"] .w-fridge{ background:var(--surface-2); border:1px solid var(--line); }
+
 /* wide PC 모니터: 좁은 폭 고정 탓에 글자가 상대적으로 작아 보이던 문제 보정 */
 @media (min-width:1440px){
   .main{ max-width:1560px; padding:26px 56px 60px; }
