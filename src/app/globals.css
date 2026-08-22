@@ -198,6 +198,14 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 /* One UI writing/typography 원칙: 강조는 시스템 블루 하나로만, 전부 대문자+자간으로 "외치는" 스타일 지양 */
 .shell[data-theme="oneui-light"] .card-title{ text-transform:none; letter-spacing:0; font-weight:600; }
 
+/* 왼쪽 메뉴바 — 삼성카드 GNB(흰 배경, 얇은 텍스트, 선택된 탭만 블루+밑줄) 스타일을
+   세로 사이드바 문법으로 번역: 필드 pill 배경 대신 얇은 좌측 강조바, 사이드바 자체는
+   콘텐츠 영역과 구분되는 화이트 서피스로. */
+.shell[data-theme="oneui-light"] .side{ background:var(--surface); }
+.shell[data-theme="oneui-light"] .nav-item{ color:var(--ink); font-weight:500; }
+.shell[data-theme="oneui-light"] .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
+.shell[data-theme="oneui-light"] .nav-item.active{ background:none; color:var(--burgundy); font-weight:700; box-shadow:inset 3px 0 0 var(--burgundy); }
+
 /* 카드형 위젯의 장식 그라디언트 제거 → 모노톤 서피스 + 블루 포인트만 (One UI: 시스템 블루 하나, 장식 그라디언트는 예외적으로만) */
 .shell[data-theme="oneui-light"] .w-user{ background:var(--surface); border:1px solid var(--line); }
 .shell[data-theme="oneui-light"] .w-user .avatar{ background:var(--burgundy) !important; color:#fff; }
