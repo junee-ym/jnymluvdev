@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/components/toast-provider'
 import { deletePhoto, updatePhoto, type PhotoFormState } from '@/app/(family)/album/actions'
@@ -9,6 +9,7 @@ import type { Photo } from '@/lib/types'
 // 앨범 페이지, 대시보드 "최근 앨범"에서 공통으로 쓰는 사진 팝업.
 export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () => void }) {
   const { showToast } = useToast()
+  const [showFull, setShowFull] = useState(false)
 
   // 모바일 뒤로가기(제스처/하드웨어 버튼)를 누르면 페이지를 벗어나는 대신 팝업만 닫히게 한다.
   // 팝업을 열 때(마운트 시) history entry를 하나 쌓아두고, popstate(뒤로가기)가 오면
@@ -72,7 +73,13 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
   return createPortal(
     <div className="lightbox-overlay open" onClick={(e) => { if (e.target === e.currentTarget) requestClose() }}>
       <div className="lightbox">
-        <img className="lightbox-img" src={photo.signedUrl} alt="" />
+        <img
+          className="lightbox-img"
+          src={photo.signedUrl}
+          alt=""
+          onClick={() => setShowFull(true)}
+          style={{ cursor: 'zoom-in' }}
+        />
         <div className="lightbox-body">
           <form action={updateFormAction}>
             <input type="hidden" name="photoId" value={photo.id} />
@@ -105,6 +112,11 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
           </form>
         </div>
       </div>
+      {showFull && (
+        <div className="lightbox-full-overlay" onClick={() => setShowFull(false)}>
+          <img className="lightbox-full-img" src={photo.signedUrl} alt="" />
+        </div>
+      )}
     </div>,
     document.body
   )
