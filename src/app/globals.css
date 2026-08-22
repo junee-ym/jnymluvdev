@@ -43,7 +43,7 @@ button{ font-family:inherit; }
 .brand-name{ font-weight:700; font-size:16px; letter-spacing:-.2px; }
 .brand-sub{ font-size:11px; color:var(--ink-soft); margin-top:1px; }
 nav{ display:flex; flex-direction:column; gap:2px; }
-.nav-item{ display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:10px; font-size:14px; font-weight:500; color:var(--ink-soft); cursor:pointer; user-select:none; transition:background .15s,color .15s; }
+.nav-item{ display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:10px; font-size:14px; font-weight:500; color:var(--ink-soft); cursor:pointer; user-select:none; text-decoration:none; transition:background .15s,color .15s; }
 .nav-item .ic{ width:18px; text-align:center; font-size:15px; opacity:.9;}
 .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
 .nav-item.active{ background:var(--burgundy-tint); color:var(--burgundy); font-weight:700; }
@@ -206,7 +206,9 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .shell[data-theme="oneui-light"] .side{ background:var(--surface); }
 .shell[data-theme="oneui-light"] .nav-item{ color:var(--ink); font-weight:500; }
 .shell[data-theme="oneui-light"] .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
-.shell[data-theme="oneui-light"] .nav-item.active{ background:none; color:var(--burgundy); font-weight:700; box-shadow:inset 3px 0 0 var(--burgundy); }
+/* One UI는 신호를 하나만 준다("시스템 블루 하나") — 활성 항목은 색+좌측바만으로 표시,
+   굵기까지 겹쳐 3중 강조하지 않음 */
+.shell[data-theme="oneui-light"] .nav-item.active{ background:none; color:var(--burgundy); font-weight:500; box-shadow:inset 3px 0 0 var(--burgundy); }
 
 /* 카드형 위젯의 장식 그라디언트 제거 → 모노톤 서피스 + 블루 포인트만 (One UI: 시스템 블루 하나, 장식 그라디언트는 예외적으로만) */
 .shell[data-theme="oneui-light"] .w-user{ background:var(--surface); border:1px solid var(--line); }
