@@ -141,6 +141,8 @@ nav{ display:flex; flex-direction:column; gap:2px; }
 .ph{ border-radius:18px; position:relative; overflow:hidden; display:flex; align-items:flex-end; padding:2px; font-size:8.5px; color:#fff; font-weight:600; aspect-ratio:1; background:var(--surface-2); }
 .ph::after{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.55)); }
 .ph span{ position:relative; z-index:1; }
+.ph-date{ position:absolute; top:4px; left:4px; z-index:1; }
+.ph-loc{ position:absolute; bottom:4px; right:4px; z-index:1; text-align:right; }
 .ph.p1{ background:linear-gradient(150deg,var(--burgundy),#8548D6);} .ph.p2{ background:linear-gradient(150deg,#8548D6,var(--gold));}
 .ph.p3{ background:linear-gradient(150deg,var(--gold),#F07AA5);} .ph.p4{ background:linear-gradient(150deg,var(--burgundy-bright),var(--burgundy));} .ph.p5{ background:linear-gradient(150deg,var(--burgundy-deep),var(--gold));}
 

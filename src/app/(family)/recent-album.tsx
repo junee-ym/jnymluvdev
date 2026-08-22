@@ -4,6 +4,11 @@ import { useRef, useState } from 'react'
 import { PhotoLightbox } from '@/components/photo-lightbox'
 import type { Photo } from '@/lib/types'
 
+function formatDateKR(dateKey: string): string {
+  const [y, m, d] = dateKey.split('-').map(Number)
+  return `${y}년 ${m}월 ${d}일`
+}
+
 // 대시보드 "최근 앨범" 카드 — 사진을 누르면 앨범으로 이동하는 대신 팝업으로 바로 보여준다.
 // 항목이 5개보다 많아 가로 캐러셀로 표시(모바일은 스와이프, PC는 화살표 버튼).
 export function RecentAlbum({ photos }: { photos: Photo[] }) {
@@ -23,6 +28,8 @@ export function RecentAlbum({ photos }: { photos: Photo[] }) {
           {photos.map((photo) => (
             <div className="ph" key={photo.id} onClick={() => setLightboxPhoto(photo)} style={{ cursor: 'pointer' }}>
               <img src={photo.signedUrl} alt={photo.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <span className="ph-date">{formatDateKR(photo.date)}</span>
+              {photo.location && <span className="ph-loc">{photo.location}</span>}
             </div>
           ))}
         </div>
