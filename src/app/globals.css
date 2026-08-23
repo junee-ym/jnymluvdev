@@ -311,6 +311,8 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
    var(--surface)/var(--line)/var(--ink) 등 변수를 쓰고 있어 위 --burgundy 등 재정의만으로
    자동으로 라이트 톤이 적용된다. */
 .shell[data-theme="oneui-light"] .modal{ box-shadow:0 8px 28px rgba(0,0,0,.12); }
+/* 앨범 페이지 사진 팝업(라이트박스)도 같은 이유로 그림자만 보정 */
+.shell[data-theme="oneui-light"] .lightbox{ box-shadow:0 8px 28px rgba(0,0,0,.12); }
 
 /* wide PC 모니터: 좁은 폭 고정 탓에 글자가 상대적으로 작아 보이던 문제 보정 */
 @media (min-width:1440px){
