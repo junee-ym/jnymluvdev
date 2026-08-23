@@ -79,9 +79,20 @@ body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Pretendard 
   -webkit-font-smoothing:antialiased; transition:background-color .3s,color .3s; }
 button{ font-family:inherit; }
 
-/* ---------- Login ---------- */
-#loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
-.login-card{ width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:32px 28px; text-align:center; box-shadow:0 12px 40px rgba(88,101,242,.35); }
+/* ---------- Login ----------
+   대시보드/달력과 같은 One UI 라이트 톤(삼성카드 GNB 스타일)을 토글 없이 항상 적용 —
+   로그인 화면은 다크 버전이 따로 필요 없어 .shell[data-theme] 패턴 대신 이 스코프에서
+   바로 변수를 다시 정의(:root 값을 덮어씀). body의 :root(다크) --bg가 비쳐 보이지 않도록
+   background도 이 스코프에서 직접 칠한다. */
+#loginScreen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF0F3; --ink:#171717; --ink-soft:rgba(23,23,23,.6);
+  --line:rgba(0,0,0,.08);
+  --burgundy:#0072DE; --burgundy-deep:#005BB0; --burgundy-bright:#0381FE; --burgundy-tint:rgba(0,114,222,.1);
+  --gold:#E2492D; --gold-tint:rgba(226,73,45,.1);
+  --success-cta:#0072DE; --ink-dark:#FFFFFF; --danger:#D93025;
+  background:var(--bg); color:var(--ink);
+}
+.login-card{ width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:32px 28px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.06); }
 .login-mark{ width:52px;height:52px;border-radius:14px; background:var(--burgundy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:600; margin:0 auto 16px; }
 .login-title{ font-size:20px; font-weight:800; margin-bottom:6px; }
 .login-sub{ font-size:13px; color:var(--ink-soft); line-height:1.5; margin-bottom:26px; }
@@ -294,6 +305,12 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .shell[data-theme="oneui-light"] .w-budget p, .shell[data-theme="oneui-light"] .w-fridge p{ color:var(--ink-soft) !important; }
 .shell[data-theme="oneui-light"] .badge-soon{ color:var(--burgundy); background:rgba(255,255,255,.7); }
 .shell[data-theme="oneui-light"] .w-fridge{ background:var(--gold-tint); border:none; }
+
+/* 달력 페이지 전용: 일정 추가/수정 모달의 그림자만 다크 테마용 인디고 톤(rgba(88,101,242,…))이라
+   라이트 배경과 안 어울려 별도 보정 — 나머지(.month-grid/.day-cell/.evt/.week-view 등)는 이미
+   var(--surface)/var(--line)/var(--ink) 등 변수를 쓰고 있어 위 --burgundy 등 재정의만으로
+   자동으로 라이트 톤이 적용된다. */
+.shell[data-theme="oneui-light"] .modal{ box-shadow:0 8px 28px rgba(0,0,0,.12); }
 
 /* wide PC 모니터: 좁은 폭 고정 탓에 글자가 상대적으로 작아 보이던 문제 보정 */
 @media (min-width:1440px){
