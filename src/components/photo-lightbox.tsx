@@ -3,13 +3,102 @@
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useToast } from '@/components/toast-provider'
-import { deletePhoto, updatePhoto, type PhotoFormState } from '@/app/(family)/album/actions'
-import type { Photo } from '@/lib/types'
+import { canModify } from '@/lib/auth/permissions'
+import {
+  addComment,
+  deleteComment,
+  deletePhoto,
+  updateComment,
+  updatePhoto,
+  type CommentFormState,
+  type PhotoFormState,
+} from '@/app/(family)/album/actions'
+import type { Comment, Photo, Profile } from '@/lib/types'
+
+function formatCommentDate(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`
+}
+
+// 댓글 한 줄: 보기 상태 / 본인이거나 운영자·관리자면 수정·삭제 가능.
+function CommentItem({
+  comment,
+  profile,
+  onUpdated,
+  onDeleted,
+}: {
+  comment: Comment
+  profile: Profile
+  onUpdated: (comment: Comment) => void
+  onDeleted: (commentId: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const initialState: CommentFormState = { error: null }
+  const [updateState, updateFormAction, updatePending] = useActionState(updateComment, initialState)
+  const [deleteState, deleteFormAction, deletePending] = useActionState(deleteComment, initialState)
+
+  // updatePhoto/deletePhoto와 같은 이유로 pending의 true→false 전이에서만 결과를 반영한다.
+  const wasUpdatePending = useRef(false)
+  useEffect(() => {
+    if (wasUpdatePending.current && !updatePending && !updateState.error && updateState.comment) {
+      onUpdated(updateState.comment)
+      setEditing(false)
+    }
+    wasUpdatePending.current = updatePending
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updatePending, updateState])
+
+  const wasDeletePending = useRef(false)
+  useEffect(() => {
+    if (wasDeletePending.current && !deletePending && !deleteState.error && deleteState.deletedId) {
+      onDeleted(deleteState.deletedId)
+    }
+    wasDeletePending.current = deletePending
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deletePending, deleteState])
+
+  const canEdit = canModify(profile.userId, comment.userId, profile.role)
+
+  if (editing) {
+    return (
+      <form action={updateFormAction} className="comment-item comment-editing">
+        <input type="hidden" name="commentId" value={comment.id} />
+        <input type="text" name="content" defaultValue={comment.content} maxLength={500} autoFocus />
+        {updateState.error && <p style={{ color: 'var(--danger)', fontSize: 11 }}>{updateState.error}</p>}
+        <div className="comment-edit-actions">
+          <button type="button" onClick={() => setEditing(false)}>취소</button>
+          <button type="submit" disabled={updatePending}>저장</button>
+        </div>
+      </form>
+    )
+  }
+
+  return (
+    <div className="comment-item">
+      <div className="comment-head">
+        <span className="comment-author">{comment.userName}</span>
+        <span className="comment-date">{formatCommentDate(comment.createdAt)}</span>
+      </div>
+      <p className="comment-content">{comment.content}</p>
+      {canEdit && (
+        <div className="comment-item-actions">
+          <button type="button" onClick={() => setEditing(true)}>수정</button>
+          <form action={deleteFormAction} style={{ display: 'inline' }}>
+            <input type="hidden" name="commentId" value={comment.id} />
+            <button type="submit" disabled={deletePending}>삭제</button>
+          </form>
+        </div>
+      )}
+      {deleteState.error && <p style={{ color: 'var(--danger)', fontSize: 11 }}>{deleteState.error}</p>}
+    </div>
+  )
+}
 
 // 앨범 페이지, 대시보드 "최근 앨범"에서 공통으로 쓰는 사진 팝업.
-export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () => void }) {
+export function PhotoLightbox({ photo, profile, onClose }: { photo: Photo; profile: Profile; onClose: () => void }) {
   const { showToast } = useToast()
   const [showFull, setShowFull] = useState(false)
+  const [comments, setComments] = useState<Comment[]>(photo.comments)
 
   // 모바일 뒤로가기(제스처/하드웨어 버튼)를 누르면 페이지를 벗어나는 대신 팝업만 닫히게 한다.
   // 팝업을 열 때(마운트 시) history entry를 하나 쌓아두고, popstate(뒤로가기)가 오면
@@ -70,6 +159,20 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deletePending, deleteState, showToast])
 
+  const addCommentInitial: CommentFormState = { error: null }
+  const [addState, addFormAction, addPending] = useActionState(addComment, addCommentInitial)
+  const addFormRef = useRef<HTMLFormElement>(null)
+
+  const wasAddPending = useRef(false)
+  useEffect(() => {
+    if (wasAddPending.current && !addPending && !addState.error && addState.comment) {
+      setComments((prev) => [...prev, addState.comment as Comment])
+      addFormRef.current?.reset()
+    }
+    wasAddPending.current = addPending
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addPending, addState])
+
   return createPortal(
     <div className="lightbox-overlay open" onClick={(e) => { if (e.target === e.currentTarget) requestClose() }}>
       <div className="lightbox">
@@ -110,6 +213,33 @@ export function PhotoLightbox({ photo, onClose }: { photo: Photo; onClose: () =>
             )}
             <button type="submit" className="btn-delete" disabled={deletePending}>이 사진 삭제하기</button>
           </form>
+
+          <div className="comment-section">
+            <label>댓글 {comments.length > 0 && `(${comments.length})`}</label>
+            <div className="comment-list">
+              {comments.length === 0 ? (
+                <p className="comment-empty">아직 댓글이 없어요.</p>
+              ) : (
+                comments.map((comment) => (
+                  <CommentItem
+                    key={comment.id}
+                    comment={comment}
+                    profile={profile}
+                    onUpdated={(updated) =>
+                      setComments((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
+                    }
+                    onDeleted={(id) => setComments((prev) => prev.filter((c) => c.id !== id))}
+                  />
+                ))
+              )}
+            </div>
+            <form action={addFormAction} ref={addFormRef} className="comment-add-form">
+              <input type="hidden" name="photoId" value={photo.id} />
+              <input type="text" name="content" placeholder="댓글을 남겨보세요" maxLength={500} />
+              <button type="submit" disabled={addPending}>등록</button>
+            </form>
+            {addState.error && <p style={{ color: 'var(--danger)', fontSize: 11 }}>{addState.error}</p>}
+          </div>
         </div>
       </div>
       {showFull && (

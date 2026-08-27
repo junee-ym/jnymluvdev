@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { PhotoLightbox } from '@/components/photo-lightbox'
-import type { Photo } from '@/lib/types'
+import type { Photo, Profile } from '@/lib/types'
 
 function formatDateKR(dateKey: string): string {
   const [y, m, d] = dateKey.split('-').map(Number)
@@ -11,7 +11,7 @@ function formatDateKR(dateKey: string): string {
 
 // 대시보드 "최근 앨범" 카드 — 사진을 누르면 앨범으로 이동하는 대신 팝업으로 바로 보여준다.
 // 항목이 5개보다 많아 가로 캐러셀로 표시(모바일은 스와이프, PC는 화살표 버튼).
-export function RecentAlbum({ photos }: { photos: Photo[] }) {
+export function RecentAlbum({ photos, profile }: { photos: Photo[]; profile: Profile }) {
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const trackRef = useRef<HTMLDivElement>(null)
 
@@ -37,7 +37,7 @@ export function RecentAlbum({ photos }: { photos: Photo[] }) {
         <button type="button" className="album-nav next" onClick={() => scrollByCard(1)} aria-label="다음 사진">›</button>
       </div>
       {lightboxPhoto && (
-        <PhotoLightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
+        <PhotoLightbox photo={lightboxPhoto} profile={profile} onClose={() => setLightboxPhoto(null)} />
       )}
     </>
   )

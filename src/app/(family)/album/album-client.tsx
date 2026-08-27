@@ -129,7 +129,7 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
       )}
 
       {lightboxPhoto && (
-        <PhotoLightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
+        <PhotoLightbox photo={lightboxPhoto} profile={profile} onClose={() => setLightboxPhoto(null)} />
       )}
     </div>
   )

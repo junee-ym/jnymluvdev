@@ -392,6 +392,24 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .lightbox-full-img{ max-width:100%; max-height:100%; object-fit:contain; }
 .lightbox-actions{ display:flex; gap:8px; margin-top:20px; }
 .lightbox-actions button{ flex:1; padding:10px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; }
+
+.comment-section{ margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
+.comment-list{ display:flex; flex-direction:column; gap:10px; max-height:200px; overflow-y:auto; margin-bottom:10px; }
+.comment-empty{ font-size:12px; color:var(--ink-soft); }
+.comment-item{ background:var(--surface-2); border-radius:10px; padding:10px 12px; }
+.comment-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.comment-author{ font-size:12px; font-weight:600; color:var(--ink); }
+.comment-date{ font-size:11px; color:var(--ink-soft); }
+.comment-content{ font-size:13px; color:var(--ink); margin:4px 0 0; white-space:pre-wrap; word-break:break-word; }
+.comment-item-actions{ display:flex; gap:10px; margin-top:6px; }
+.comment-item-actions button{ background:none; border:none; padding:0; font-size:11px; color:var(--ink-soft); cursor:pointer; text-decoration:underline; }
+.comment-editing input[type="text"]{ width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:inherit; }
+.comment-edit-actions{ display:flex; gap:8px; margin-top:6px; }
+.comment-edit-actions button{ padding:6px 12px; border-radius:6px; border:none; font-size:12px; font-weight:600; cursor:pointer; background:var(--surface); }
+.comment-edit-actions button[type="submit"]{ background:var(--burgundy); color:#fff; }
+.comment-add-form{ display:flex; gap:8px; }
+.comment-add-form input{ flex:1; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:inherit; }
+.comment-add-form button{ padding:9px 14px; border-radius:8px; border:none; background:var(--burgundy); color:#fff; font-size:12.5px; font-weight:600; cursor:pointer; }
 .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
 @media (max-width:880px){

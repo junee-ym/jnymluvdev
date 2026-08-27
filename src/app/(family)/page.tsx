@@ -26,7 +26,7 @@ export default async function DashboardPage() {
       .lte('event_dt', weekEnd),
     supabase
       .from('t_photo')
-      .select('photo_id, taken_dt, locatn, caption, strpath, user_id, created')
+      .select('photo_id, taken_dt, locatn, caption, strpath, user_id, created, t_comment(comment_id, content, created, user_id, t_user(name))')
       .order('taken_dt', { ascending: false })
       .limit(10),
     supabase
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
             <div className="card-title">최근 앨범</div>
             <Link href="/album" className="card-link">전체 보기 →</Link>
           </div>
-          <RecentAlbum photos={recentPhotos} />
+          <RecentAlbum photos={recentPhotos} profile={profile} />
         </div>
 
         <div className="card w-budget">

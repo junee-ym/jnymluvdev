@@ -17,6 +17,14 @@ export type CalendarEvent = {
   userId: string
 }
 
+export type Comment = {
+  id: string
+  content: string
+  createdAt: string // ISO timestamp (created)
+  userId: string
+  userName: string
+}
+
 export type Photo = {
   id: string
   date: string // 촬영일 (taken_dt)
@@ -27,4 +35,5 @@ export type Photo = {
   // photo_id로 DB에서 직접 읽는다 — 클라이언트가 보낸 경로를 믿으면 안 된다.
   userId: string
   signedUrl: string
+  comments: Comment[]
 }

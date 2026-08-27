@@ -9,7 +9,7 @@ export default async function AlbumPage() {
 
   const { data } = await supabase
     .from('t_photo')
-    .select('photo_id, taken_dt, locatn, caption, strpath, user_id, created')
+    .select('photo_id, taken_dt, locatn, caption, strpath, user_id, created, t_comment(comment_id, content, created, user_id, t_user(name))')
     .order('taken_dt', { ascending: false })
 
   const photos = await toSignedPhotos(supabase, data ?? [])
