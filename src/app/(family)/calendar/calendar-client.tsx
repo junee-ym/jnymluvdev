@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useCallback, useEffect, useRef, useState } from 'react'
+import { useActionState, useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import { buildMonthGrid, buildWeekGrid, formatDateKey } from '@/lib/calendar/grid'
 import type { Holiday } from '@/lib/calendar/holidays'
 import { canModify, isOperatorOrAdmin } from '@/lib/auth/permissions'
@@ -165,6 +165,24 @@ export function CalendarClient({
     }
   }
 
+  // 모바일 좌우 스와이프로 이전/다음 달(주) 이동. 세로 스크롤과 헷갈리지 않게
+  // 가로 이동이 세로 이동보다 뚜렷하고 임계값(50px)을 넘을 때만 넘긴다.
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  function onTouchStart(e: TouchEvent) {
+    const t = e.touches[0]
+    touchStart.current = { x: t.clientX, y: t.clientY }
+  }
+  function onTouchEnd(e: TouchEvent) {
+    if (!touchStart.current) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - touchStart.current.x
+    const dy = t.clientY - touchStart.current.y
+    touchStart.current = null
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      shift(dx < 0 ? 1 : -1)
+    }
+  }
+
   return (
     <section>
       <div className="cal-header">
@@ -216,7 +234,7 @@ export function CalendarClient({
       )}
 
       {viewMode === 'month' ? (
-        <div className="month-grid">
+        <div className="month-grid" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           <div className="weekday-row">
             {DOWS.map((d, i) => (
               <div key={d} className={i === 0 ? 'sun' : i === 6 ? 'sat' : ''}>{d}</div>
@@ -258,7 +276,7 @@ export function CalendarClient({
           </div>
         </div>
       ) : (
-        <div className="week-view active">
+        <div className="week-view active" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
           {buildWeekGrid(cursor).map((date, i) => {
             const dateKey = formatDateKey(date)
             const holiday = getHoliday(dateKey)
