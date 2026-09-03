@@ -1,5 +1,9 @@
 import type { BudgetCategory, TxType } from '@/lib/types'
 
+export function formatWon(amount: number): string {
+  return `${amount.toLocaleString('ko-KR')}원`
+}
+
 export function calcSavings(totalIncome: number, totalExpense: number): { amount: number; rate: number } {
   const amount = totalIncome - totalExpense
   const rate = totalIncome > 0 ? (amount / totalIncome) * 100 : 0

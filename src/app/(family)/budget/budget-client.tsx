@@ -9,6 +9,7 @@ import {
   collectSubtreeIds,
   currentYearMonthKST,
   flattenCategoryTree,
+  formatWon,
   shiftYearMonth,
   type CategoryNode,
 } from '@/lib/budget/calc'
@@ -27,11 +28,8 @@ import {
 import { useToast } from '@/components/toast-provider'
 
 const TX_TYPE_LABEL: Record<TxType, string> = { INCOME: '수입', EXPENSE: '지출', SAVING: '저축' }
+const TX_TYPE_COLOR: Record<TxType, string> = { INCOME: 'var(--burgundy)', EXPENSE: 'var(--gold)', SAVING: 'var(--ink-soft)' }
 const EVALUATIONS = ['소비', '낭비', '투자'] as const
-
-function formatWon(amount: number): string {
-  return `${amount.toLocaleString('ko-KR')}원`
-}
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | null {
   for (const node of nodes) {
@@ -196,7 +194,7 @@ export function BudgetClient({
     .filter((row) => row.hasBudget || row.spent > 0)
 
   return (
-    <section>
+    <section className="budget-page">
       <div className="cal-header">
         <div className="cal-title-group">
           <div className="cal-title">{yearMonth} 가계부</div>
@@ -221,7 +219,7 @@ export function BudgetClient({
         <div className="budget-row"><span>저축률</span><b>{savings.rate.toFixed(1)}%</b></div>
       </div>
 
-      <h3>카테고리별 예산</h3>
+      <h3 className="card-title">카테고리별 예산</h3>
       {budgetRows.map((row) => (
         <div key={row.id} style={{ marginBottom: 10 }}>
           <div className="budget-row">
@@ -254,17 +252,22 @@ export function BudgetClient({
         <button type="submit" className="btn-cancel" disabled={budgetPending}>예산 추가</button>
       </form>
 
-      <h3>거래 내역</h3>
-      <ul>
+      <h3 className="card-title">거래 내역</h3>
+      <div className="budget-rows">
         {transactions.map((tx) => (
-          <li key={tx.id} onClick={() => openTxModal(tx)} style={{ cursor: 'pointer' }}>
-            {tx.date} · {TX_TYPE_LABEL[tx.txType]} · {categoryName(tx.categoryId)} · {formatWon(tx.amount)}
-            {tx.fixed && ' · 고정'}
-            {tx.memo && ` · ${tx.memo}`}
-          </li>
+          <div key={tx.id} className="budget-row tx-row" onClick={() => openTxModal(tx)}>
+            <span>
+              {tx.date} · {TX_TYPE_LABEL[tx.txType]} · {categoryName(tx.categoryId)}
+              {tx.fixed && ' · 고정'}
+              {tx.memo && ` · ${tx.memo}`}
+            </span>
+            <b style={{ color: TX_TYPE_COLOR[tx.txType] }}>
+              {tx.txType === 'EXPENSE' ? '-' : '+'}{formatWon(tx.amount)}
+            </b>
+          </div>
         ))}
-        {transactions.length === 0 && <li>이번 달 거래가 없어요.</li>}
-      </ul>
+        {transactions.length === 0 && <div className="budget-row"><span>이번 달 거래가 없어요.</span></div>}
+      </div>
 
       {txModalOpen && (
         <div className="modal-overlay open" onClick={(e) => { if (e.target === e.currentTarget) closeTxModal() }}>

@@ -236,6 +236,14 @@ nav{ display:flex; flex-direction:column; gap:2px; font-family:'GMarketSans','Pr
 .budget-row{ display:flex; align-items:center; justify-content:space-between; font-size:14.5px; color:var(--ink-soft); }
 .budget-row b{ color:var(--ink); font-weight:600; }
 
+/* ---------- 가계부 페이지 (/budget) ---------- */
+.budget-page select,
+.budget-page input[type="number"],
+.budget-page input[type="date"]{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:13px; font-family:inherit; }
+.budget-page .tx-row{ cursor:pointer; padding:8px 6px; border-radius:8px; margin:0 -6px; }
+.budget-page .tx-row:hover{ background:var(--surface-2); }
+.budget-page .card-title{ margin:24px 0 12px; }
+
 .w-fridge{ grid-column:span 3; grid-row:span 2; background:var(--surface-2); border-color:transparent; }
 .fridge-dot{ background:#fff; }
 .fridge-list{ display:flex; flex-direction:column; gap:8px; margin-top:2px; }
@@ -329,7 +337,7 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .cal-title-group{ display:flex; align-items:center; gap:14px; }
 .cal-title{ font-size:22px; font-weight:800; letter-spacing:-.5px; min-width:150px; }
 .cal-nav{ display:flex; align-items:center; gap:4px; }
-.cal-nav button, .cal-nav a{ width:30px;height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); cursor:pointer; font-size:13px; }
+.cal-nav button, .cal-nav a{ width:30px;height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; text-decoration:none; }
 .cal-nav button:hover, .cal-nav a:hover{ color:var(--burgundy); border-color:var(--burgundy); }
 .today-btn{ padding:0 12px; height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); font-size:12.5px; font-weight:600; cursor:pointer; }
 .today-btn:hover{ color:var(--burgundy); border-color:var(--burgundy); }
@@ -379,6 +387,7 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .modal h3{ margin:0 0 16px; font-size:16px; }
 .modal label{ display:block; font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; margin-top:14px; }
 .modal input{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:inherit; }
+.modal select{ width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:13px; font-family:inherit; }
 .modal-actions{ display:flex; gap:8px; margin-top:22px; }
 .modal-actions button{ flex:1; padding:10px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; }
 .btn-cancel{ background:var(--surface-2); color:var(--ink-soft); }
