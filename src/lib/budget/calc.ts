@@ -45,6 +45,10 @@ export function flattenCategoryTree(
   ])
 }
 
+export function collectSubtreeIds(node: CategoryNode): string[] {
+  return [node.id, ...node.children.flatMap(collectSubtreeIds)]
+}
+
 export function yearMonthRange(yearMonth: string): { start: string; end: string } {
   const [yearStr, monthStr] = yearMonth.split('-')
   const year = Number(yearStr)

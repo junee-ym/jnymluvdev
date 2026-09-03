@@ -3,6 +3,7 @@ import {
   buildCategoryTree,
   calcBudgetUsage,
   calcSavings,
+  collectSubtreeIds,
   flattenCategoryTree,
   shiftYearMonth,
   yearMonthRange,
@@ -56,6 +57,18 @@ describe('flattenCategoryTree', () => {
       { id: 'food', name: '식비', depth: 0 },
       { id: 'food-out', name: '외식', depth: 1 },
     ])
+  })
+})
+
+describe('collectSubtreeIds', () => {
+  it('자기 자신과 모든 하위 카테고리 id를 모은다', () => {
+    const tree = buildCategoryTree([cat('food', '식비'), cat('food-out', '외식', 'food'), cat('food-deliv', '배달', 'food')])
+    expect(collectSubtreeIds(tree[0]).sort()).toEqual(['food', 'food-deliv', 'food-out'])
+  })
+
+  it('자식이 없으면 자기 자신만 반환한다', () => {
+    const tree = buildCategoryTree([cat('salary', '남편급여')])
+    expect(collectSubtreeIds(tree[0])).toEqual(['salary'])
   })
 })
 

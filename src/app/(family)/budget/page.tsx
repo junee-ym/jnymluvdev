@@ -15,7 +15,8 @@ export default async function BudgetPage({
   searchParams: Promise<{ month?: string }>
 }) {
   const profile = await requireProfile()
-  const yearMonth = (await searchParams).month || currentYearMonth()
+  const monthParam = (await searchParams).month
+  const yearMonth = monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? monthParam : currentYearMonth()
   const { start, end } = yearMonthRange(yearMonth)
   const supabase = await createClient()
 

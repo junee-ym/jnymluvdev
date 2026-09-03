@@ -6,8 +6,10 @@ import {
   buildCategoryTree,
   calcBudgetUsage,
   calcSavings,
+  collectSubtreeIds,
   flattenCategoryTree,
   shiftYearMonth,
+  type CategoryNode,
 } from '@/lib/budget/calc'
 import { canModify } from '@/lib/auth/permissions'
 import type { Budget, BudgetCategory, BudgetTransaction, Profile, TxType } from '@/lib/types'
@@ -27,6 +29,20 @@ const EVALUATIONS = ['소비', '낭비', '투자'] as const
 
 function formatWon(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
+}
+
+function currentYearMonthClientSide(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+function findNode(nodes: CategoryNode[], id: string): CategoryNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const found = findNode(node.children, id)
+    if (found) return found
+  }
+  return null
 }
 
 export function BudgetClient({
@@ -157,13 +173,29 @@ export function BudgetClient({
   const categoryOptions = (type: TxType) => flattenCategoryTree(buildCategoryTree(categoriesByType(type)))
   const categoryName = (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? '(삭제됨)'
 
-  const budgetRows = categoryOptions('EXPENSE').map((opt) => {
-    const budget = budgets.find((b) => b.categoryId === opt.id)
-    const spent = transactions
-      .filter((t) => t.txType === 'EXPENSE' && t.categoryId === opt.id)
-      .reduce((sum, t) => sum + t.amount, 0)
-    return { ...opt, budgetAmount: budget?.amount ?? 0, spent, usage: calcBudgetUsage(spent, budget?.amount ?? 0) }
-  })
+  const expenseTree = buildCategoryTree(categoriesByType('EXPENSE'))
+  const isCurrentMonth = yearMonth === currentYearMonthClientSide()
+
+  const budgetRows = categoryOptions('EXPENSE')
+    .map((opt) => {
+      const budget = budgets.find((b) => b.categoryId === opt.id)
+      const node = findNode(expenseTree, opt.id)
+      // 상위 카테고리에 예산을 걸면 하위 카테고리 거래도 합산해서 반영한다(스펙: 어떤 노드든 예산 가능).
+      const subtreeIds = node ? collectSubtreeIds(node) : [opt.id]
+      const spent = transactions
+        .filter((t) => t.txType === 'EXPENSE' && subtreeIds.includes(t.categoryId))
+        .reduce((sum, t) => sum + t.amount, 0)
+      return {
+        ...opt,
+        hasBudget: budget !== undefined,
+        budgetAmount: budget?.amount ?? 0,
+        spent,
+        usage: calcBudgetUsage(spent, budget?.amount ?? 0),
+      }
+    })
+    // 예산이 설정됐거나 지출이 있는 카테고리만 보여준다 — 81개 전 카테고리를 항상 띄우면
+    // 거래 내역이 화면 아래로 밀려나 쓸 수 없어진다. 새 카테고리는 "예산 추가" 폼으로 등록.
+    .filter((row) => row.hasBudget || row.spent > 0)
 
   return (
     <section>
@@ -208,7 +240,20 @@ export function BudgetClient({
           </form>
         </div>
       ))}
+      {budgetRows.length === 0 && <p>설정된 예산이 없어요. 아래에서 카테고리를 골라 추가해보세요.</p>}
       {budgetState.error && <p style={{ color: 'var(--danger)', fontSize: 12 }}>{budgetState.error}</p>}
+
+      <form action={budgetFormAction} style={{ display: 'flex', gap: 8, marginTop: 12, marginBottom: 20 }}>
+        <select name="categoryId" defaultValue="" required style={{ flex: 1 }}>
+          <option value="" disabled>예산을 추가할 카테고리 선택</option>
+          {categoryOptions('EXPENSE').map((opt) => (
+            <option key={opt.id} value={opt.id}>{'　'.repeat(opt.depth)}{opt.name}</option>
+          ))}
+        </select>
+        <input type="hidden" name="yearMonth" value={yearMonth} />
+        <input type="number" name="amount" min={0} placeholder="예산 금액" style={{ width: 120 }} required />
+        <button type="submit" className="btn-cancel" disabled={budgetPending}>예산 추가</button>
+      </form>
 
       <h3>거래 내역</h3>
       <ul>
@@ -235,7 +280,14 @@ export function BudgetClient({
                 <option value="SAVING">저축</option>
               </select>
               <label>날짜</label>
-              <input type="date" name="date" defaultValue={editingTx?.date ?? `${yearMonth}-01`} required />
+              <input
+                type="date"
+                name="date"
+                defaultValue={
+                  editingTx?.date ?? (isCurrentMonth ? new Date().toISOString().slice(0, 10) : `${yearMonth}-01`)
+                }
+                required
+              />
               <label>카테고리</label>
               <select name="categoryId" defaultValue={editingTx?.categoryId ?? ''} required>
                 <option value="" disabled>선택해주세요</option>

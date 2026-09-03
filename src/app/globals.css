@@ -329,8 +329,8 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .cal-title-group{ display:flex; align-items:center; gap:14px; }
 .cal-title{ font-size:22px; font-weight:800; letter-spacing:-.5px; min-width:150px; }
 .cal-nav{ display:flex; align-items:center; gap:4px; }
-.cal-nav button{ width:30px;height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); cursor:pointer; font-size:13px; }
-.cal-nav button:hover{ color:var(--burgundy); border-color:var(--burgundy); }
+.cal-nav button, .cal-nav a{ width:30px;height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); cursor:pointer; font-size:13px; }
+.cal-nav button:hover, .cal-nav a:hover{ color:var(--burgundy); border-color:var(--burgundy); }
 .today-btn{ padding:0 12px; height:30px; border-radius:7px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); font-size:12.5px; font-weight:600; cursor:pointer; }
 .today-btn:hover{ color:var(--burgundy); border-color:var(--burgundy); }
 .cal-actions{ display:flex; align-items:center; gap:10px; }
