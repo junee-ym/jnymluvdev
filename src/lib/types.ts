@@ -8,6 +8,12 @@ export type Profile = {
   avatar: string | null
 }
 
+export type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
 export type CalendarEvent = {
   id: string
   date: string // YYYY-MM-DD
@@ -15,6 +21,7 @@ export type CalendarEvent = {
   title: string
   category: string | null
   userId: string
+  tags: Tag[]
 }
 
 export type Comment = {
