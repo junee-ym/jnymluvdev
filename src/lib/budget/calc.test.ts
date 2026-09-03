@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildCategoryTree,
   calcBudgetUsage,
   calcSavings,
   collectSubtreeIds,
+  currentYearMonthKST,
   flattenCategoryTree,
   shiftYearMonth,
   yearMonthRange,
@@ -69,6 +70,21 @@ describe('collectSubtreeIds', () => {
   it('자식이 없으면 자기 자신만 반환한다', () => {
     const tree = buildCategoryTree([cat('salary', '남편급여')])
     expect(collectSubtreeIds(tree[0])).toEqual(['salary'])
+  })
+})
+
+describe('currentYearMonthKST', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('UTC 자정 직후에도 KST 기준 달을 반환한다', () => {
+    vi.setSystemTime(new Date('2026-08-31T15:30:00Z')) // KST로는 2026-09-01 00:30
+    expect(currentYearMonthKST()).toBe('2026-09')
+  })
+
+  it('평범한 시각에는 그대로 그 달을 반환한다', () => {
+    vi.setSystemTime(new Date('2026-09-15T03:00:00Z')) // KST 정오
+    expect(currentYearMonthKST()).toBe('2026-09')
   })
 })
 

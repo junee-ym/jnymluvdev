@@ -60,7 +60,7 @@ export async function deleteCategory(
 
   const supabase = await createClient()
   const { error } = await supabase.from('t_budget_category').delete().eq('category_id', categoryId)
-  if (error) return { error: '이 카테고리를 쓰는 거래나 하위 카테고리가 있으면 삭제할 수 없어요' }
+  if (error) return { error: '이 카테고리(또는 하위 카테고리)를 쓰는 거래가 있으면 삭제할 수 없어요' }
 
   revalidatePath('/budget')
   return { error: null }

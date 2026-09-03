@@ -49,6 +49,13 @@ export function collectSubtreeIds(node: CategoryNode): string[] {
   return [node.id, ...node.children.flatMap(collectSubtreeIds)]
 }
 
+// 서버(UTC)와 브라우저(로컬)가 각자 "이번 달"을 계산하면 자정 근처(KST 00~09시)에
+// 서로 다른 달을 답할 수 있다 — 항상 KST 기준으로 통일해 하나의 함수로 판정한다.
+export function currentYearMonthKST(): string {
+  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000)
+  return `${kst.getUTCFullYear()}-${String(kst.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
 export function yearMonthRange(yearMonth: string): { start: string; end: string } {
   const [yearStr, monthStr] = yearMonth.split('-')
   const year = Number(yearStr)

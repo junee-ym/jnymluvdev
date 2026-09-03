@@ -1,13 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/auth/session'
-import { yearMonthRange } from '@/lib/budget/calc'
+import { currentYearMonthKST, yearMonthRange } from '@/lib/budget/calc'
 import { BudgetClient } from './budget-client'
 import type { Budget, BudgetCategory, BudgetTransaction } from '@/lib/types'
-
-function currentYearMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
 
 export default async function BudgetPage({
   searchParams,
@@ -16,7 +11,7 @@ export default async function BudgetPage({
 }) {
   const profile = await requireProfile()
   const monthParam = (await searchParams).month
-  const yearMonth = monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? monthParam : currentYearMonth()
+  const yearMonth = monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam) ? monthParam : currentYearMonthKST()
   const { start, end } = yearMonthRange(yearMonth)
   const supabase = await createClient()
 

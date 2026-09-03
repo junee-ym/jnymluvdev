@@ -7,10 +7,12 @@ import {
   calcBudgetUsage,
   calcSavings,
   collectSubtreeIds,
+  currentYearMonthKST,
   flattenCategoryTree,
   shiftYearMonth,
   type CategoryNode,
 } from '@/lib/budget/calc'
+import { formatDateKey } from '@/lib/calendar/grid'
 import { canModify } from '@/lib/auth/permissions'
 import type { Budget, BudgetCategory, BudgetTransaction, Profile, TxType } from '@/lib/types'
 import { createTransaction, deleteTransaction, updateTransaction, type TransactionFormState } from './actions'
@@ -29,11 +31,6 @@ const EVALUATIONS = ['소비', '낭비', '투자'] as const
 
 function formatWon(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
-}
-
-function currentYearMonthClientSide(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | null {
@@ -167,6 +164,7 @@ export function BudgetClient({
 
   const totalIncome = transactions.filter((t) => t.txType === 'INCOME').reduce((sum, t) => sum + t.amount, 0)
   const totalExpense = transactions.filter((t) => t.txType === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0)
+  const totalSaving = transactions.filter((t) => t.txType === 'SAVING').reduce((sum, t) => sum + t.amount, 0)
   const savings = calcSavings(totalIncome, totalExpense)
 
   const categoriesByType = (type: TxType) => categories.filter((c) => c.txType === type)
@@ -174,7 +172,7 @@ export function BudgetClient({
   const categoryName = (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? '(삭제됨)'
 
   const expenseTree = buildCategoryTree(categoriesByType('EXPENSE'))
-  const isCurrentMonth = yearMonth === currentYearMonthClientSide()
+  const isCurrentMonth = yearMonth === currentYearMonthKST()
 
   const budgetRows = categoryOptions('EXPENSE')
     .map((opt) => {
@@ -218,7 +216,8 @@ export function BudgetClient({
       <div className="budget-rows" style={{ marginBottom: 20 }}>
         <div className="budget-row"><span>총 수입</span><b>{formatWon(totalIncome)}</b></div>
         <div className="budget-row"><span>총 지출</span><b>{formatWon(totalExpense)}</b></div>
-        <div className="budget-row"><span>저축액</span><b>{formatWon(savings.amount)}</b></div>
+        <div className="budget-row"><span>총 저축</span><b>{formatWon(totalSaving)}</b></div>
+        <div className="budget-row"><span>잉여금</span><b>{formatWon(savings.amount)}</b></div>
         <div className="budget-row"><span>저축률</span><b>{savings.rate.toFixed(1)}%</b></div>
       </div>
 
@@ -284,7 +283,7 @@ export function BudgetClient({
                 type="date"
                 name="date"
                 defaultValue={
-                  editingTx?.date ?? (isCurrentMonth ? new Date().toISOString().slice(0, 10) : `${yearMonth}-01`)
+                  editingTx?.date ?? (isCurrentMonth ? formatDateKey(new Date()) : `${yearMonth}-01`)
                 }
                 required
               />
@@ -352,7 +351,18 @@ export function BudgetClient({
                       </button>
                       <form action={deleteCatFormAction} style={{ display: 'inline' }}>
                         <input type="hidden" name="categoryId" value={opt.id} />
-                        <button type="submit" className="btn-delete" disabled={deleteCatPending}>삭제</button>
+                        <button
+                          type="submit"
+                          className="btn-delete"
+                          disabled={deleteCatPending}
+                          onClick={(e) => {
+                            if (!window.confirm(`"${opt.name}" 카테고리를 삭제할까요? 하위 카테고리가 있다면 함께 삭제돼요.`)) {
+                              e.preventDefault()
+                            }
+                          }}
+                        >
+                          삭제
+                        </button>
                       </form>
                     </li>
                   ))}
