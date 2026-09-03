@@ -14,9 +14,9 @@ const NAV_ITEMS = [
   { href: '/', label: '대시보드', icon: '▦' },
   { href: '/calendar', label: '달력', icon: '📅' },
   { href: '/album', label: '앨범', icon: '🖼' },
+  { href: '/budget', label: '가계부', icon: '💳' },
 ]
 const NAV_ITEMS_SOON = [
-  { href: '/budget', label: '가계부', icon: '💳' },
   { href: '/fridge', label: '냉장고', icon: '❄︎' },
   { href: '/trip', label: '여행일기', icon: '✈' },
   { href: '/board', label: '게시판', icon: '🗒' },
