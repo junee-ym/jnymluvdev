@@ -44,3 +44,32 @@ export type Photo = {
   signedUrl: string
   comments: Comment[]
 }
+
+export type TxType = 'INCOME' | 'EXPENSE' | 'SAVING'
+
+export type BudgetCategory = {
+  id: string
+  txType: TxType
+  parentId: string | null
+  name: string
+}
+
+export type BudgetTransaction = {
+  id: string
+  date: string // YYYY-MM-DD
+  txType: TxType
+  fixed: boolean
+  categoryId: string
+  amount: number
+  source: string | null
+  evaluation: '소비' | '낭비' | '투자' | null
+  memo: string | null
+  userId: string
+}
+
+export type Budget = {
+  id: string
+  categoryId: string
+  yearMonth: string // YYYY-MM
+  amount: number
+}
