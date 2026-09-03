@@ -15,20 +15,27 @@ export async function createEvent(
   const date = String(formData.get('date') ?? '')
   const title = String(formData.get('title') ?? '').trim()
   const time = String(formData.get('time') ?? '') || null
+  const tagIds = formData.getAll('tagIds').map(String)
 
   if (!date || !title) {
     return { error: '날짜와 제목을 입력해주세요' }
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.from('t_event').insert({
-    event_dt: date,
-    event_tm: time,
-    title,
-    user_id: profile.userId,
-  })
+  const { data: event, error } = await supabase
+    .from('t_event')
+    .insert({ event_dt: date, event_tm: time, title, user_id: profile.userId })
+    .select('event_id')
+    .single()
 
-  if (error) return { error: '일정 저장에 실패했어요' }
+  if (error || !event) return { error: '일정 저장에 실패했어요' }
+
+  if (tagIds.length > 0) {
+    const { error: tagError } = await supabase
+      .from('t_event_tag')
+      .insert(tagIds.map((tagId) => ({ event_id: event.event_id, tag_id: tagId })))
+    if (tagError) return { error: '태그 저장에 실패했어요' }
+  }
 
   revalidatePath('/calendar')
   revalidatePath('/')
@@ -44,6 +51,7 @@ export async function updateEvent(
   const date = String(formData.get('date') ?? '')
   const title = String(formData.get('title') ?? '').trim()
   const time = String(formData.get('time') ?? '') || null
+  const tagIds = formData.getAll('tagIds').map(String)
 
   if (!eventId || !date || !title) {
     return { error: '날짜와 제목을 입력해주세요' }
@@ -66,6 +74,16 @@ export async function updateEvent(
     .eq('event_id', eventId)
 
   if (error) return { error: '일정 수정에 실패했어요' }
+
+  // 태그는 diff 계산 없이 전체 삭제 후 다시 넣는다 — 일정당 태그 수가 적어 비용이 미미하다.
+  const { error: unlinkError } = await supabase.from('t_event_tag').delete().eq('event_id', eventId)
+  if (unlinkError) return { error: '태그 수정에 실패했어요' }
+  if (tagIds.length > 0) {
+    const { error: tagError } = await supabase
+      .from('t_event_tag')
+      .insert(tagIds.map((tagId) => ({ event_id: eventId, tag_id: tagId })))
+    if (tagError) return { error: '태그 수정에 실패했어요' }
+  }
 
   revalidatePath('/calendar')
   revalidatePath('/')
