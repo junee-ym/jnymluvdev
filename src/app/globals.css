@@ -236,6 +236,8 @@ nav{ display:flex; flex-direction:column; gap:2px; font-family:'GMarketSans','Pr
 .budget-bar{ height:8px; border-radius:6px; background:var(--surface-2); margin-top:12px; overflow:hidden; }
 .budget-fill{ height:100%; border-radius:6px; background:var(--burgundy); width:64%; }
 .budget-fill.over{ background:var(--danger); }
+.budget-cat-row{ padding:12px 0; border-bottom:1px solid var(--line); }
+.budget-cat-row:last-child{ border-bottom:none; }
 .budget-rows{ margin-top:12px; display:flex; flex-direction:column; gap:7px; }
 .budget-row{ display:flex; align-items:center; justify-content:space-between; font-size:14.5px; color:var(--ink-soft); }
 .budget-row b{ color:var(--ink); font-weight:600; }

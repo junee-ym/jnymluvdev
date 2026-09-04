@@ -396,7 +396,7 @@ export function BudgetClient({
       {budgetRows
         .filter((row) => budgetViewLevel === 'leaf' || row.depth === 0)
         .map((row) => (
-        <div key={row.id} style={{ marginBottom: 10 }}>
+        <div key={row.id} className="budget-cat-row">
           <div className="budget-row">
             <span style={{ paddingLeft: row.depth * 12 }}>{row.name}</span>
             <b>{formatWon(row.spent)} / {formatWon(row.budgetAmount)}</b>
