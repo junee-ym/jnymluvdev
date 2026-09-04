@@ -61,10 +61,16 @@ export type BudgetTransaction = {
   fixed: boolean
   categoryId: string
   amount: number
-  source: string | null
+  cardId: string | null
   evaluation: '소비' | '낭비' | '투자' | null
   memo: string | null
   userId: string
+}
+
+export type BudgetCard = {
+  id: string
+  name: string
+  ownerId: string | null
 }
 
 export type Budget = {

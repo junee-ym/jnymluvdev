@@ -101,7 +101,7 @@ describe('yearMonthRange', () => {
 })
 
 function tx(date: string, txType: BudgetTransaction['txType'], categoryId: string, amount: number): BudgetTransaction {
-  return { id: `${date}-${categoryId}-${amount}`, date, txType, fixed: false, categoryId, amount, source: null, evaluation: null, memo: null, userId: 'u1' }
+  return { id: `${date}-${categoryId}-${amount}`, date, txType, fixed: false, categoryId, amount, cardId: null, evaluation: null, memo: null, userId: 'u1' }
 }
 
 describe('monthlyTotals', () => {

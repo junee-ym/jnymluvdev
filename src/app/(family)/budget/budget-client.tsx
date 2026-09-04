@@ -18,7 +18,7 @@ import {
 import { BudgetBarChart, DonutChart, TrendChart } from './budget-charts'
 import { formatDateKey } from '@/lib/calendar/grid'
 import { canModify } from '@/lib/auth/permissions'
-import type { Budget, BudgetCategory, BudgetTransaction, Profile, TxType } from '@/lib/types'
+import type { Budget, BudgetCard, BudgetCategory, BudgetTransaction, Profile, TxType } from '@/lib/types'
 import { createTransaction, deleteTransaction, updateTransaction, type TransactionFormState } from './actions'
 import {
   createCategory,
@@ -28,6 +28,7 @@ import {
   type BudgetFormState,
   type CategoryFormState,
 } from './category-actions'
+import { createCard, deleteCard, updateCard, type CardFormState } from './card-actions'
 import { useToast } from '@/components/toast-provider'
 
 const TX_TYPE_LABEL: Record<TxType, string> = { INCOME: '수입', EXPENSE: '지출', SAVING: '저축' }
@@ -48,6 +49,8 @@ export function BudgetClient({
   categories,
   transactions,
   budgets,
+  cards,
+  familyMembers,
   profile,
   trendMonths,
   trendTransactions,
@@ -56,6 +59,8 @@ export function BudgetClient({
   categories: BudgetCategory[]
   transactions: BudgetTransaction[]
   budgets: Budget[]
+  cards: BudgetCard[]
+  familyMembers: { userId: string; name: string }[]
   profile: Profile
   trendMonths: string[]
   trendTransactions: { date: string; txType: TxType; amount: number }[]
@@ -72,6 +77,8 @@ export function BudgetClient({
   const [editingCategory, setEditingCategory] = useState<BudgetCategory | null>(null)
   const [categoryFormType, setCategoryFormType] = useState<TxType>('EXPENSE')
   const [categoryFormParentId, setCategoryFormParentId] = useState('')
+  const [cardModalOpen, setCardModalOpen] = useState(false)
+  const [editingCard, setEditingCard] = useState<BudgetCard | null>(null)
 
   const initialTxState: TransactionFormState = { error: null }
   const [createState, createFormAction, createPending] = useActionState(createTransaction, initialTxState)
@@ -85,6 +92,11 @@ export function BudgetClient({
 
   const initialBudgetState: BudgetFormState = { error: null }
   const [budgetState, budgetFormAction, budgetPending] = useActionState(setBudget, initialBudgetState)
+
+  const initialCardState: CardFormState = { error: null }
+  const [createCardState, createCardFormAction, createCardPending] = useActionState(createCard, initialCardState)
+  const [updateCardState, updateCardFormAction, updateCardPending] = useActionState(updateCard, initialCardState)
+  const [deleteCardState, deleteCardFormAction, deleteCardPending] = useActionState(deleteCard, initialCardState)
 
   function openTxModal(tx?: BudgetTransaction) {
     setEditingTx(tx ?? null)
@@ -105,6 +117,14 @@ export function BudgetClient({
   function closeCategoryModal() {
     setCategoryModalOpen(false)
     setEditingCategory(null)
+  }
+
+  function openCardForm(card?: BudgetCard) {
+    setEditingCard(card ?? null)
+  }
+  function closeCardModal() {
+    setCardModalOpen(false)
+    setEditingCard(null)
   }
 
   // useActionState의 state는 액션이 완료된 뒤의 리렌더에서만 최신값이 된다 — pending이
@@ -172,6 +192,33 @@ export function BudgetClient({
     wasBudgetPending.current = budgetPending
   }, [budgetPending, budgetState, showToast])
 
+  const wasCreateCardPending = useRef(false)
+  useEffect(() => {
+    if (wasCreateCardPending.current && !createCardPending && !createCardState.error) {
+      showToast('카드를 만들었어요')
+      openCardForm()
+    }
+    wasCreateCardPending.current = createCardPending
+  }, [createCardPending, createCardState, showToast])
+
+  const wasUpdateCardPending = useRef(false)
+  useEffect(() => {
+    if (wasUpdateCardPending.current && !updateCardPending && !updateCardState.error) {
+      showToast('카드를 수정했어요')
+      openCardForm()
+    }
+    wasUpdateCardPending.current = updateCardPending
+  }, [updateCardPending, updateCardState, showToast])
+
+  const wasDeleteCardPending = useRef(false)
+  useEffect(() => {
+    if (wasDeleteCardPending.current && !deleteCardPending && !deleteCardState.error) {
+      showToast('카드를 삭제했어요')
+      openCardForm()
+    }
+    wasDeleteCardPending.current = deleteCardPending
+  }, [deleteCardPending, deleteCardState, showToast])
+
   const totalIncome = transactions.filter((t) => t.txType === 'INCOME').reduce((sum, t) => sum + t.amount, 0)
   const totalExpense = transactions.filter((t) => t.txType === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0)
   const totalSaving = transactions.filter((t) => t.txType === 'SAVING').reduce((sum, t) => sum + t.amount, 0)
@@ -180,6 +227,13 @@ export function BudgetClient({
   const categoriesByType = (type: TxType) => categories.filter((c) => c.txType === type)
   const categoryOptions = (type: TxType) => flattenCategoryTree(buildCategoryTree(categoriesByType(type)))
   const categoryName = (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? '(삭제됨)'
+  const memberName = (userId: string) => familyMembers.find((m) => m.userId === userId)?.name ?? null
+  // 지출자 = 거래에 쓴 카드의 소유자. 카드가 없거나(현금 등) 소유자 미지정이면 표시 안 함.
+  const payerName = (tx: BudgetTransaction) => {
+    if (tx.txType !== 'EXPENSE' || !tx.cardId) return null
+    const ownerId = cards.find((c) => c.id === tx.cardId)?.ownerId
+    return ownerId ? memberName(ownerId) : null
+  }
 
   const expenseTree = buildCategoryTree(categoriesByType('EXPENSE'))
   const isCurrentMonth = yearMonth === currentYearMonthKST()
@@ -221,6 +275,9 @@ export function BudgetClient({
           </button>
           <button className="tag-manage-btn" onClick={() => { openCategoryForm(); setCategoryModalOpen(true) }}>
             카테고리 관리
+          </button>
+          <button className="tag-manage-btn" onClick={() => { openCardForm(); setCardModalOpen(true) }}>
+            카드 관리
           </button>
           <button className="add-event" onClick={() => openTxModal()}>+ 거래 추가</button>
         </div>
@@ -283,6 +340,7 @@ export function BudgetClient({
             <span>
               {tx.date} · {TX_TYPE_LABEL[tx.txType]} · {categoryName(tx.categoryId)}
               {tx.fixed && ' · 고정'}
+              {payerName(tx) && ` · 지출자: ${payerName(tx)}`}
               {tx.memo && ` · ${tx.memo}`}
             </span>
             <b style={{ color: TX_TYPE_COLOR[tx.txType] }}>
@@ -379,8 +437,15 @@ export function BudgetClient({
               <label>
                 <input type="checkbox" name="fixed" defaultChecked={editingTx?.fixed ?? false} /> 고정 지출/수입
               </label>
-              <label>거래출처 (선택)</label>
-              <input type="text" name="source" defaultValue={editingTx?.source ?? ''} placeholder="예: 신용카드1, 현금" />
+              <label>카드 (선택)</label>
+              <select name="cardId" defaultValue={editingTx?.cardId ?? ''}>
+                <option value="">선택 안 함</option>
+                {cards.map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {card.name}{card.ownerId && ` (${memberName(card.ownerId) ?? ''})`}
+                  </option>
+                ))}
+              </select>
               {txType === 'EXPENSE' && (
                 <>
                   <label>지출 평가 (선택)</label>
@@ -500,6 +565,62 @@ export function BudgetClient({
                 <button type="button" className="btn-cancel" onClick={closeCategoryModal}>닫기</button>
                 <button type="submit" className="btn-save" disabled={createCatPending || updateCatPending}>
                   {editingCategory ? '수정' : '추가'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {cardModalOpen && (
+        <div className="modal-overlay open" onClick={(e) => { if (e.target === e.currentTarget) closeCardModal() }}>
+          <div className="modal">
+            <h3>카드 관리</h3>
+            <ul className="tag-manage-list">
+              {cards.map((card) => (
+                <li key={card.id}>
+                  <span className="tag-manage-name">
+                    {card.name}{card.ownerId && ` (${memberName(card.ownerId) ?? ''})`}
+                  </span>
+                  <button type="button" className="btn-cancel" onClick={() => openCardForm(card)}>수정</button>
+                  <form action={deleteCardFormAction} style={{ display: 'inline' }}>
+                    <input type="hidden" name="cardId" value={card.id} />
+                    <button
+                      type="submit"
+                      className="btn-delete"
+                      disabled={deleteCardPending}
+                      onClick={(e) => {
+                        if (!window.confirm(`"${card.name}" 카드를 삭제할까요?`)) e.preventDefault()
+                      }}
+                    >
+                      삭제
+                    </button>
+                  </form>
+                </li>
+              ))}
+              {cards.length === 0 && <li><span className="tag-manage-name">등록된 카드가 없어요.</span></li>}
+            </ul>
+            {deleteCardState.error && <p style={{ color: 'var(--danger)', fontSize: 12 }}>{deleteCardState.error}</p>}
+
+            <form key={editingCard?.id ?? 'new'} action={editingCard ? updateCardFormAction : createCardFormAction}>
+              <h3 style={{ fontSize: 13, marginTop: 18 }}>{editingCard ? '카드 수정' : '새 카드'}</h3>
+              {editingCard && <input type="hidden" name="cardId" value={editingCard.id} />}
+              <label>이름</label>
+              <input type="text" name="name" defaultValue={editingCard?.name ?? ''} placeholder="예: 신용카드1, 현금" required />
+              <label>소유자 (선택 안 하면 지출자 미표시)</label>
+              <select name="ownerId" defaultValue={editingCard?.ownerId ?? ''}>
+                <option value="">미지정</option>
+                {familyMembers.map((m) => (
+                  <option key={m.userId} value={m.userId}>{m.name}</option>
+                ))}
+              </select>
+              {(createCardState.error || updateCardState.error) && (
+                <p style={{ color: 'var(--danger)', fontSize: 12 }}>{createCardState.error ?? updateCardState.error}</p>
+              )}
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={closeCardModal}>닫기</button>
+                <button type="submit" className="btn-save" disabled={createCardPending || updateCardPending}>
+                  {editingCard ? '수정' : '추가'}
                 </button>
               </div>
             </form>

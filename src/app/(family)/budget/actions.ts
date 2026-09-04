@@ -19,7 +19,7 @@ export async function createTransaction(
   const categoryId = String(formData.get('categoryId') ?? '')
   const amount = Number(formData.get('amount') ?? 0)
   const fixed = formData.get('fixed') === 'on'
-  const source = String(formData.get('source') ?? '').trim() || null
+  const cardId = String(formData.get('cardId') ?? '').trim() || null
   const evaluation = String(formData.get('evaluation') ?? '').trim() || null
   const memo = String(formData.get('memo') ?? '').trim() || null
 
@@ -45,7 +45,7 @@ export async function createTransaction(
     fixed,
     category_id: categoryId,
     amount,
-    source,
+    card_id: cardId,
     evaluation,
     memo,
     user_id: profile.userId,
@@ -68,7 +68,7 @@ export async function updateTransaction(
   const categoryId = String(formData.get('categoryId') ?? '')
   const amount = Number(formData.get('amount') ?? 0)
   const fixed = formData.get('fixed') === 'on'
-  const source = String(formData.get('source') ?? '').trim() || null
+  const cardId = String(formData.get('cardId') ?? '').trim() || null
   const evaluation = String(formData.get('evaluation') ?? '').trim() || null
   const memo = String(formData.get('memo') ?? '').trim() || null
 
@@ -105,7 +105,7 @@ export async function updateTransaction(
       fixed,
       category_id: categoryId,
       amount,
-      source,
+      card_id: cardId,
       evaluation,
       memo,
       updated: new Date().toISOString(),
