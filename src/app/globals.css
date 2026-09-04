@@ -122,13 +122,15 @@ button{ font-family:inherit; }
 .brand-sub{ font-size:11px; color:var(--ink-soft); margin-top:1px; }
 nav{ display:flex; flex-direction:column; gap:2px; font-family:'GMarketSans','Pretendard Variable',Pretendard,-apple-system,sans-serif; }
 .nav-item{ display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:10px; font-size:14px; font-weight:500; color:var(--ink-soft); cursor:pointer; user-select:none; text-decoration:none; transition:background .15s,color .15s; }
-.nav-item .ic{ width:18px; text-align:center; font-size:15px; opacity:.9;}
+.nav-item .ic{ width:18px; display:inline-flex; align-items:center; justify-content:center; opacity:.9;}
 .nav-item:hover{ background:var(--surface-2); color:var(--ink); }
 .nav-item.active{ background:var(--burgundy-tint); color:var(--burgundy); font-weight:700; }
 .nav-soon{ margin-left:auto; font-size:9.5px; padding:2px 6px; border-radius:20px; background:var(--gold); color:#fff; font-weight:600;}
 /* One UI List subheader: 관련 항목을 시각적 묶음으로 구분(대문자·강한 색으로 강조하지 않음) */
 .nav-subheader{ font-size:11px; font-weight:600; color:var(--ink-soft); padding:14px 12px 4px; }
 .side-foot{ margin-top:0; }
+.nav-credit{ display:block; margin-top:auto; padding:10px 12px 4px; font-size:10px; color:var(--ink-soft); opacity:.6; text-decoration:none; }
+.nav-credit:hover{ text-decoration:underline; }
 .invite-card{ background:var(--surface-2); border-radius:14px; padding:14px; font-size:12px; color:var(--ink-soft); line-height:1.5; }
 .invite-card b{ color:var(--ink); display:block; margin-bottom:4px; font-size:12.5px;}
 .invite-btn{ margin-top:10px; width:100%; padding:9px; border:none; border-radius:var(--radius-md); background:var(--success-cta); color:var(--ink-dark); font-size:12px; font-weight:700; cursor:pointer; }
