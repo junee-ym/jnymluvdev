@@ -1,4 +1,4 @@
-import type { BudgetCategory, TxType } from '@/lib/types'
+import type { BudgetCategory, BudgetTransaction, TxType } from '@/lib/types'
 
 export function formatWon(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
@@ -66,6 +66,51 @@ export function yearMonthRange(yearMonth: string): { start: string; end: string 
   const month = Number(monthStr)
   const lastDay = new Date(year, month, 0).getDate()
   return { start: `${yearMonth}-01`, end: `${yearMonth}-${String(lastDay).padStart(2, '0')}` }
+}
+
+// 최근 N개월 추이 차트용 — 거래를 월별로 묶어 수입/지출/저축 합계를 낸다. 거래가 없는
+// 달도 0으로 채워야 라인이 끊기지 않는다.
+export function monthlyTotals(
+  transactions: Pick<BudgetTransaction, 'date' | 'txType' | 'amount'>[],
+  months: string[]
+): { month: string; income: number; expense: number; saving: number }[] {
+  return months.map((month) => {
+    const inMonth = transactions.filter((t) => t.date.startsWith(month))
+    const sum = (type: TxType) => inMonth.filter((t) => t.txType === type).reduce((s, t) => s + t.amount, 0)
+    return { month, income: sum('INCOME'), expense: sum('EXPENSE'), saving: sum('SAVING') }
+  })
+}
+
+// 카테고리별 지출 비중 도넛용 — 'top'은 대분류 조상까지 올려서, 'leaf'는 거래에 찍힌
+// 카테고리 그대로 묶는다. 금액 내림차순 정렬 후 limit을 넘는 나머지는 "기타"로 접는다.
+export function expenseBreakdown(
+  transactions: Pick<BudgetTransaction, 'txType' | 'categoryId' | 'amount'>[],
+  categories: BudgetCategory[],
+  level: 'top' | 'leaf',
+  limit: number
+): { id: string; name: string; amount: number }[] {
+  const byId = new Map(categories.map((c) => [c.id, c]))
+  const topAncestorId = (id: string): string => {
+    const category = byId.get(id)
+    if (!category || !category.parentId) return id
+    return topAncestorId(category.parentId)
+  }
+
+  const totals = new Map<string, number>()
+  for (const t of transactions) {
+    if (t.txType !== 'EXPENSE') continue
+    const groupId = level === 'top' ? topAncestorId(t.categoryId) : t.categoryId
+    totals.set(groupId, (totals.get(groupId) ?? 0) + t.amount)
+  }
+
+  const sorted = [...totals.entries()]
+    .map(([id, amount]) => ({ id, name: byId.get(id)?.name ?? '(삭제됨)', amount }))
+    .sort((a, b) => b.amount - a.amount)
+
+  if (sorted.length <= limit) return sorted
+  const head = sorted.slice(0, limit)
+  const otherAmount = sorted.slice(limit).reduce((s, row) => s + row.amount, 0)
+  return [...head, { id: '__other__', name: '기타', amount: otherAmount }]
 }
 
 export function shiftYearMonth(yearMonth: string, delta: number): string {

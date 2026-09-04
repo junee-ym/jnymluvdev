@@ -8,11 +8,14 @@ import {
   calcSavings,
   collectSubtreeIds,
   currentYearMonthKST,
+  expenseBreakdown,
   flattenCategoryTree,
   formatWon,
+  monthlyTotals,
   shiftYearMonth,
   type CategoryNode,
 } from '@/lib/budget/calc'
+import { BudgetBarChart, DonutChart, TrendChart } from './budget-charts'
 import { formatDateKey } from '@/lib/calendar/grid'
 import { canModify } from '@/lib/auth/permissions'
 import type { Budget, BudgetCategory, BudgetTransaction, Profile, TxType } from '@/lib/types'
@@ -46,14 +49,20 @@ export function BudgetClient({
   transactions,
   budgets,
   profile,
+  trendMonths,
+  trendTransactions,
 }: {
   yearMonth: string
   categories: BudgetCategory[]
   transactions: BudgetTransaction[]
   budgets: Budget[]
   profile: Profile
+  trendMonths: string[]
+  trendTransactions: { date: string; txType: TxType; amount: number }[]
 }) {
   const { showToast } = useToast()
+  const [chartsOpen, setChartsOpen] = useState(false)
+  const [breakdownLevel, setBreakdownLevel] = useState<'top' | 'leaf'>('top')
   const [txModalOpen, setTxModalOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<BudgetTransaction | null>(null)
   const [txType, setTxType] = useState<TxType>('EXPENSE')
@@ -206,6 +215,9 @@ export function BudgetClient({
           </div>
         </div>
         <div className="cal-actions">
+          <button className="tag-manage-btn" onClick={() => setChartsOpen((v) => !v)}>
+            {chartsOpen ? '차트 숨기기' : '차트 보기'}
+          </button>
           <button className="tag-manage-btn" onClick={() => { openCategoryForm(); setCategoryModalOpen(true) }}>
             카테고리 관리
           </button>
@@ -220,6 +232,48 @@ export function BudgetClient({
         <div className="budget-row"><span>잉여금</span><b>{formatWon(savings.amount)}</b></div>
         <div className="budget-row"><span>저축률</span><b>{savings.rate.toFixed(1)}%</b></div>
       </div>
+
+      {chartsOpen && (
+        <div className="budget-charts">
+          <div className="budget-chart-block">
+            <div className="budget-chart-head">
+              <h3 className="card-title" style={{ margin: 0 }}>카테고리별 지출 비중</h3>
+              <div className="budget-chart-toggle">
+                <button
+                  type="button"
+                  className={breakdownLevel === 'top' ? 'active' : ''}
+                  onClick={() => setBreakdownLevel('top')}
+                >
+                  대분류
+                </button>
+                <button
+                  type="button"
+                  className={breakdownLevel === 'leaf' ? 'active' : ''}
+                  onClick={() => setBreakdownLevel('leaf')}
+                >
+                  소분류
+                </button>
+              </div>
+            </div>
+            <DonutChart data={expenseBreakdown(transactions, categories, breakdownLevel, 6)} />
+          </div>
+
+          <div className="budget-chart-block">
+            <h3 className="card-title" style={{ margin: 0 }}>최근 {trendMonths.length}개월 추이</h3>
+            <TrendChart data={monthlyTotals(trendTransactions, trendMonths)} colors={{ income: TX_TYPE_COLOR.INCOME, expense: TX_TYPE_COLOR.EXPENSE, saving: TX_TYPE_COLOR.SAVING }} />
+          </div>
+
+          <div className="budget-chart-block">
+            <h3 className="card-title" style={{ margin: 0 }}>예산 대비 실적</h3>
+            <BudgetBarChart
+              rows={budgetRows
+                .filter((row) => row.hasBudget)
+                .sort((a, b) => b.spent - a.spent)
+                .slice(0, 8)}
+            />
+          </div>
+        </div>
+      )}
 
       <h3 className="card-title">카테고리별 예산</h3>
       {budgetRows.map((row) => (

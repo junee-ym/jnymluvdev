@@ -5,11 +5,13 @@ import {
   calcSavings,
   collectSubtreeIds,
   currentYearMonthKST,
+  expenseBreakdown,
   flattenCategoryTree,
+  monthlyTotals,
   shiftYearMonth,
   yearMonthRange,
 } from './calc'
-import type { BudgetCategory } from '@/lib/types'
+import type { BudgetCategory, BudgetTransaction } from '@/lib/types'
 
 describe('calcSavings', () => {
   it('수입에서 지출을 뺀 금액과 저축률을 계산한다', () => {
@@ -95,6 +97,84 @@ describe('yearMonthRange', () => {
 
   it('윤년 2월은 29일까지다', () => {
     expect(yearMonthRange('2028-02')).toEqual({ start: '2028-02-01', end: '2028-02-29' })
+  })
+})
+
+function tx(date: string, txType: BudgetTransaction['txType'], categoryId: string, amount: number): BudgetTransaction {
+  return { id: `${date}-${categoryId}-${amount}`, date, txType, fixed: false, categoryId, amount, source: null, evaluation: null, memo: null, userId: 'u1' }
+}
+
+describe('monthlyTotals', () => {
+  it('월별로 수입/지출/저축을 합산한다', () => {
+    const transactions = [
+      tx('2026-08-05', 'INCOME', 'salary', 3_000_000),
+      tx('2026-08-10', 'EXPENSE', 'food', 500_000),
+      tx('2026-09-05', 'INCOME', 'salary', 3_000_000),
+      tx('2026-09-10', 'EXPENSE', 'food', 700_000),
+      tx('2026-09-10', 'SAVING', 'fund', 200_000),
+    ]
+    expect(monthlyTotals(transactions, ['2026-08', '2026-09'])).toEqual([
+      { month: '2026-08', income: 3_000_000, expense: 500_000, saving: 0 },
+      { month: '2026-09', income: 3_000_000, expense: 700_000, saving: 200_000 },
+    ])
+  })
+
+  it('거래가 없는 달은 0으로 채운다', () => {
+    expect(monthlyTotals([], ['2026-07'])).toEqual([{ month: '2026-07', income: 0, expense: 0, saving: 0 }])
+  })
+})
+
+describe('expenseBreakdown', () => {
+  const categories: BudgetCategory[] = [
+    cat('food', '식비'),
+    cat('food-out', '외식', 'food'),
+    cat('food-deliv', '배달', 'food'),
+    cat('life', '생활'),
+    cat('transport', '교통'),
+  ]
+
+  it('leaf 레벨은 거래에 찍힌 카테고리 그대로 묶는다', () => {
+    const transactions = [
+      tx('2026-09-01', 'EXPENSE', 'food-out', 30_000),
+      tx('2026-09-02', 'EXPENSE', 'food-out', 20_000),
+      tx('2026-09-03', 'EXPENSE', 'food-deliv', 15_000),
+    ]
+    expect(expenseBreakdown(transactions, categories, 'leaf', 6)).toEqual([
+      { id: 'food-out', name: '외식', amount: 50_000 },
+      { id: 'food-deliv', name: '배달', amount: 15_000 },
+    ])
+  })
+
+  it('top 레벨은 대분류 조상까지 올려서 묶는다', () => {
+    const transactions = [
+      tx('2026-09-01', 'EXPENSE', 'food-out', 30_000),
+      tx('2026-09-02', 'EXPENSE', 'food-deliv', 15_000),
+      tx('2026-09-03', 'EXPENSE', 'transport', 10_000),
+    ]
+    expect(expenseBreakdown(transactions, categories, 'top', 6)).toEqual([
+      { id: 'food', name: '식비', amount: 45_000 },
+      { id: 'transport', name: '교통', amount: 10_000 },
+    ])
+  })
+
+  it('limit을 넘으면 나머지를 기타로 접는다', () => {
+    const many: BudgetCategory[] = ['a', 'b', 'c', 'd'].map((id) => cat(id, id))
+    const transactions = [
+      tx('2026-09-01', 'EXPENSE', 'a', 40),
+      tx('2026-09-01', 'EXPENSE', 'b', 30),
+      tx('2026-09-01', 'EXPENSE', 'c', 20),
+      tx('2026-09-01', 'EXPENSE', 'd', 10),
+    ]
+    expect(expenseBreakdown(transactions, many, 'leaf', 2)).toEqual([
+      { id: 'a', name: 'a', amount: 40 },
+      { id: 'b', name: 'b', amount: 30 },
+      { id: '__other__', name: '기타', amount: 30 },
+    ])
+  })
+
+  it('EXPENSE가 아닌 거래는 무시한다', () => {
+    const transactions = [tx('2026-09-01', 'INCOME', 'food', 100_000)]
+    expect(expenseBreakdown(transactions, categories, 'leaf', 6)).toEqual([])
   })
 })
 
