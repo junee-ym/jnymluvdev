@@ -63,6 +63,7 @@ export function BudgetClient({
   const { showToast } = useToast()
   const [chartsOpen, setChartsOpen] = useState(false)
   const [breakdownLevel, setBreakdownLevel] = useState<'top' | 'leaf'>('top')
+  const [budgetViewLevel, setBudgetViewLevel] = useState<'top' | 'leaf'>('top')
   const [txModalOpen, setTxModalOpen] = useState(false)
   const [editingTx, setEditingTx] = useState<BudgetTransaction | null>(null)
   const [txType, setTxType] = useState<TxType>('EXPENSE')
@@ -275,8 +276,45 @@ export function BudgetClient({
         </div>
       )}
 
-      <h3 className="card-title">카테고리별 예산</h3>
-      {budgetRows.map((row) => (
+      <h3 className="card-title">거래 내역</h3>
+      <div className="budget-rows" style={{ marginBottom: 20 }}>
+        {transactions.map((tx) => (
+          <div key={tx.id} className="budget-row tx-row" onClick={() => openTxModal(tx)}>
+            <span>
+              {tx.date} · {TX_TYPE_LABEL[tx.txType]} · {categoryName(tx.categoryId)}
+              {tx.fixed && ' · 고정'}
+              {tx.memo && ` · ${tx.memo}`}
+            </span>
+            <b style={{ color: TX_TYPE_COLOR[tx.txType] }}>
+              {tx.txType === 'EXPENSE' ? '-' : '+'}{formatWon(tx.amount)}
+            </b>
+          </div>
+        ))}
+        {transactions.length === 0 && <div className="budget-row"><span>이번 달 거래가 없어요.</span></div>}
+      </div>
+
+      <div className="budget-chart-head">
+        <h3 className="card-title" style={{ margin: 0 }}>카테고리별 예산</h3>
+        <div className="budget-chart-toggle">
+          <button
+            type="button"
+            className={budgetViewLevel === 'top' ? 'active' : ''}
+            onClick={() => setBudgetViewLevel('top')}
+          >
+            대분류
+          </button>
+          <button
+            type="button"
+            className={budgetViewLevel === 'leaf' ? 'active' : ''}
+            onClick={() => setBudgetViewLevel('leaf')}
+          >
+            소분류
+          </button>
+        </div>
+      </div>
+      {budgetRows
+        .filter((row) => budgetViewLevel === 'leaf' || row.depth === 0)
+        .map((row) => (
         <div key={row.id} style={{ marginBottom: 10 }}>
           <div className="budget-row">
             <span style={{ paddingLeft: row.depth * 12 }}>{row.name}</span>
@@ -307,23 +345,6 @@ export function BudgetClient({
         <input type="number" name="amount" min={0} placeholder="예산 금액" style={{ width: 120 }} required />
         <button type="submit" className="btn-cancel" disabled={budgetPending}>예산 추가</button>
       </form>
-
-      <h3 className="card-title">거래 내역</h3>
-      <div className="budget-rows">
-        {transactions.map((tx) => (
-          <div key={tx.id} className="budget-row tx-row" onClick={() => openTxModal(tx)}>
-            <span>
-              {tx.date} · {TX_TYPE_LABEL[tx.txType]} · {categoryName(tx.categoryId)}
-              {tx.fixed && ' · 고정'}
-              {tx.memo && ` · ${tx.memo}`}
-            </span>
-            <b style={{ color: TX_TYPE_COLOR[tx.txType] }}>
-              {tx.txType === 'EXPENSE' ? '-' : '+'}{formatWon(tx.amount)}
-            </b>
-          </div>
-        ))}
-        {transactions.length === 0 && <div className="budget-row"><span>이번 달 거래가 없어요.</span></div>}
-      </div>
 
       {txModalOpen && (
         <div className="modal-overlay open" onClick={(e) => { if (e.target === e.currentTarget) closeTxModal() }}>
