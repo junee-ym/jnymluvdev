@@ -245,6 +245,13 @@ nav{ display:flex; flex-direction:column; gap:2px; font-family:'GMarketSans','Pr
 .budget-page input[type="date"]{ padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:13px; font-family:inherit; }
 .budget-page .tx-row{ cursor:pointer; padding:8px 6px; border-radius:8px; margin:0 -6px; }
 .budget-page .tx-row:hover{ background:var(--surface-2); }
+.tx-row-info{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.tx-date{ color:var(--ink-soft); }
+.tx-memo{ color:var(--ink-soft); }
+.tx-badge{ font-size:12px; font-weight:600; border-radius:999px; padding:2px 9px; border:1px solid transparent; line-height:1.6; }
+.tx-badge-category{ background:var(--surface-2); color:var(--ink-soft); }
+.tx-badge-fixed{ background:rgba(122,90,248,.14); color:#7A5AF8; }
+.tx-badge-payer{ background:var(--surface-2); border-color:var(--line); color:var(--ink-soft); }
 .budget-page .card-title{ margin:24px 0 12px; }
 .budget-charts{ display:flex; flex-direction:column; gap:24px; margin:16px 0 24px; }
 .budget-chart-block{ display:flex; flex-direction:column; gap:8px; }

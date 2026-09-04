@@ -17,6 +17,7 @@ import {
 } from '@/lib/budget/calc'
 import { BudgetBarChart, DonutChart, TrendChart } from './budget-charts'
 import { formatDateKey } from '@/lib/calendar/grid'
+import { TAG_COLORS } from '@/lib/calendar/tags'
 import { canModify } from '@/lib/auth/permissions'
 import type { Budget, BudgetCard, BudgetCategory, BudgetTransaction, Profile, TxType } from '@/lib/types'
 import { createTransaction, deleteTransaction, updateTransaction, type TransactionFormState } from './actions'
@@ -228,11 +229,17 @@ export function BudgetClient({
   const categoryOptions = (type: TxType) => flattenCategoryTree(buildCategoryTree(categoriesByType(type)))
   const categoryName = (categoryId: string) => categories.find((c) => c.id === categoryId)?.name ?? '(삭제됨)'
   const memberName = (userId: string) => familyMembers.find((m) => m.userId === userId)?.name ?? null
-  // 지출자 = 거래에 쓴 카드의 소유자. 카드가 없거나(현금 등) 소유자 미지정이면 표시 안 함.
-  const payerName = (tx: BudgetTransaction) => {
+  // 지출자 배지 = 거래에 쓴 카드. 카드명으로 표시하되 카드 소유자별로 색을 고정한다
+  // (familyMembers 배열 내 순서로 팔레트 인덱스를 정해 항상 같은 사람은 같은 색).
+  const ownerColor = (ownerId: string | null) => {
+    const idx = familyMembers.findIndex((m) => m.userId === ownerId)
+    return idx >= 0 ? TAG_COLORS[idx % TAG_COLORS.length] : null
+  }
+  const payerCard = (tx: BudgetTransaction) => {
     if (tx.txType !== 'EXPENSE' || !tx.cardId) return null
-    const ownerId = cards.find((c) => c.id === tx.cardId)?.ownerId
-    return ownerId ? memberName(ownerId) : null
+    const card = cards.find((c) => c.id === tx.cardId)
+    if (!card) return null
+    return { name: card.name, color: ownerColor(card.ownerId) }
   }
 
   const expenseTree = buildCategoryTree(categoriesByType('EXPENSE'))
@@ -335,19 +342,30 @@ export function BudgetClient({
 
       <h3 className="card-title">거래 내역</h3>
       <div className="budget-rows" style={{ marginBottom: 20 }}>
-        {transactions.map((tx) => (
-          <div key={tx.id} className="budget-row tx-row" onClick={() => openTxModal(tx)}>
-            <span>
-              {tx.date} · {TX_TYPE_LABEL[tx.txType]} · {categoryName(tx.categoryId)}
-              {tx.fixed && ' · 고정'}
-              {payerName(tx) && ` · 지출자: ${payerName(tx)}`}
-              {tx.memo && ` · ${tx.memo}`}
-            </span>
-            <b style={{ color: TX_TYPE_COLOR[tx.txType] }}>
-              {tx.txType === 'EXPENSE' ? '-' : '+'}{formatWon(tx.amount)}
-            </b>
-          </div>
-        ))}
+        {transactions.map((tx) => {
+          const card = payerCard(tx)
+          return (
+            <div key={tx.id} className="budget-row tx-row" onClick={() => openTxModal(tx)}>
+              <span className="tx-row-info">
+                <span className="tx-date">{tx.date}</span>
+                <span className="tx-badge tx-badge-category">{categoryName(tx.categoryId)}</span>
+                {tx.fixed && <span className="tx-badge tx-badge-fixed">고정</span>}
+                {card && (
+                  <span
+                    className="tx-badge tx-badge-payer"
+                    style={card.color ? { background: `${card.color}1f`, borderColor: card.color, color: card.color } : undefined}
+                  >
+                    {card.name}
+                  </span>
+                )}
+                {tx.memo && <span className="tx-memo">{tx.memo}</span>}
+              </span>
+              <b style={{ color: TX_TYPE_COLOR[tx.txType] }}>
+                {tx.txType === 'EXPENSE' ? '-' : '+'}{formatWon(tx.amount)}
+              </b>
+            </div>
+          )
+        })}
         {transactions.length === 0 && <div className="budget-row"><span>이번 달 거래가 없어요.</span></div>}
       </div>
 
