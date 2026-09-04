@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDateKey } from '@/lib/calendar/grid'
 import { getExifDate, getExifGps } from '@/lib/exif'
@@ -113,19 +113,19 @@ export function AlbumClient({ photos, profile }: { photos: Photo[]; profile: Pro
           <p>위 &quot;+ 사진 추가&quot; 버튼으로 첫 사진을 올려보세요.</p>
         </div>
       ) : (
-        sections.map(([date, group]) => (
-          <div className="album-section" key={date}>
-            <div className="album-section-title">{formatDateKR(date)}</div>
-            <div className="photo-grid">
+        <div className="photo-grid">
+          {sections.map(([date, group]) => (
+            <Fragment key={date}>
+              <div className="album-date-header">{formatDateKR(date)}</div>
               {group.map((photo) => (
                 <div className="photo-thumb" key={photo.id} onClick={() => setLightboxPhoto(photo)}>
                   <img src={photo.signedUrl} alt={photo.caption ?? ''} />
                   {photo.caption && <div className="cap">{photo.caption}</div>}
                 </div>
               ))}
-            </div>
-          </div>
-        ))
+            </Fragment>
+          ))}
+        </div>
       )}
 
       {lightboxPhoto && (
