@@ -407,6 +407,11 @@ footer.note{ margin-top:26px; font-size:11.5px; color:var(--ink-soft); text-alig
 .tag-manage-name{ flex:1; font-size:13px; }
 .tag-manage-list .btn-cancel{ flex:none; padding:5px 10px; border-radius:6px; font-size:11.5px; }
 .tag-manage-list .btn-delete{ margin-top:0; }
+.tag-manage-group{ border:1px solid var(--line); border-radius:8px; margin-top:8px; overflow:hidden; }
+.tag-manage-group-head{ width:100%; display:flex; align-items:center; gap:8px; padding:9px 12px; border:none; background:var(--surface); font-size:13px; font-weight:700; color:var(--ink); cursor:pointer; }
+.tag-manage-group-count{ color:var(--ink-soft); font-weight:500; font-size:11.5px; }
+.tag-manage-group-caret{ margin-left:auto; color:var(--ink-soft); font-size:10px; }
+.tag-manage-group .tag-manage-list{ padding:8px 12px 10px; }
 .tag-color-palette{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
 .tag-color-swatch{ width:24px; height:24px; border-radius:50%; border:2px solid transparent; cursor:pointer; }
 .tag-color-swatch.selected{ border-color:var(--ink); }

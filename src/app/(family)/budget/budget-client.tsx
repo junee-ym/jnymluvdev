@@ -58,6 +58,7 @@ export function BudgetClient({
   const [editingTx, setEditingTx] = useState<BudgetTransaction | null>(null)
   const [txType, setTxType] = useState<TxType>('EXPENSE')
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)
+  const [openCategoryType, setOpenCategoryType] = useState<TxType | null>('EXPENSE')
   const [editingCategory, setEditingCategory] = useState<BudgetCategory | null>(null)
   const [categoryFormType, setCategoryFormType] = useState<TxType>('EXPENSE')
   const [categoryFormParentId, setCategoryFormParentId] = useState('')
@@ -89,6 +90,7 @@ export function BudgetClient({
     setEditingCategory(category ?? null)
     setCategoryFormType(category?.txType ?? 'EXPENSE')
     setCategoryFormParentId(category?.parentId ?? '')
+    if (category) setOpenCategoryType(category.txType)
   }
   function closeCategoryModal() {
     setCategoryModalOpen(false)
@@ -339,8 +341,18 @@ export function BudgetClient({
           <div className="modal">
             <h3>카테고리 관리</h3>
             {(['INCOME', 'EXPENSE', 'SAVING'] as const).map((type) => (
-              <div key={type}>
-                <h4 style={{ fontSize: 13, marginTop: 12 }}>{TX_TYPE_LABEL[type]}</h4>
+              <div key={type} className="tag-manage-group">
+                <button
+                  type="button"
+                  className="tag-manage-group-head"
+                  aria-expanded={openCategoryType === type}
+                  onClick={() => setOpenCategoryType((prev) => (prev === type ? null : type))}
+                >
+                  <span>{TX_TYPE_LABEL[type]}</span>
+                  <span className="tag-manage-group-count">{categoryOptions(type).length}개</span>
+                  <span className="tag-manage-group-caret">{openCategoryType === type ? '▲' : '▼'}</span>
+                </button>
+                {openCategoryType === type && (
                 <ul className="tag-manage-list">
                   {categoryOptions(type).map((opt) => (
                     <li key={opt.id}>
@@ -370,6 +382,7 @@ export function BudgetClient({
                     </li>
                   ))}
                 </ul>
+                )}
               </div>
             ))}
             {deleteCatState.error && <p style={{ color: 'var(--danger)', fontSize: 12 }}>{deleteCatState.error}</p>}
