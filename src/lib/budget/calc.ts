@@ -1,4 +1,4 @@
-import type { BudgetCategory, BudgetTransaction, TxType } from '@/lib/types'
+import type { BudgetCard, BudgetCategory, BudgetTransaction, TxType } from '@/lib/types'
 
 export function formatWon(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
@@ -116,6 +116,36 @@ export function expenseBreakdown(
   const head = sorted.slice(0, limit)
   const otherAmount = sorted.slice(limit).reduce((s, row) => s + row.amount, 0)
   return [...head, { id: '__other__', name: '기타', amount: otherAmount }]
+}
+
+// 사용자별 지출 도넛용 — 거래의 카드를 통해 소유자(가족 구성원 또는 자유 텍스트)를 찾아 합산한다.
+// id는 "user:<userId>" / "text:<이름>" / "__unassigned__" 세 형태 중 하나로,
+// 색 배정은 호출 측(컴포넌트)이 이 접두사로 구분해 처리한다.
+export function expenseByOwner(
+  transactions: Pick<BudgetTransaction, 'txType' | 'cardId' | 'amount'>[],
+  cards: Pick<BudgetCard, 'id' | 'ownerId' | 'ownerName'>[],
+  familyMembers: { userId: string; name: string }[]
+): { id: string; name: string; amount: number }[] {
+  const cardById = new Map(cards.map((c) => [c.id, c]))
+  const memberNameById = new Map(familyMembers.map((m) => [m.userId, m.name]))
+
+  const totals = new Map<string, { name: string; amount: number }>()
+  for (const t of transactions) {
+    if (t.txType !== 'EXPENSE') continue
+    const card = t.cardId ? cardById.get(t.cardId) : undefined
+    const key = card?.ownerId
+      ? `user:${card.ownerId}`
+      : card?.ownerName
+        ? `text:${card.ownerName}`
+        : '__unassigned__'
+    const name = card?.ownerId
+      ? (memberNameById.get(card.ownerId) ?? '(삭제됨)')
+      : card?.ownerName ?? '미지정'
+    const prev = totals.get(key)
+    totals.set(key, { name, amount: (prev?.amount ?? 0) + t.amount })
+  }
+
+  return [...totals.entries()].map(([id, v]) => ({ id, ...v })).sort((a, b) => b.amount - a.amount)
 }
 
 export function shiftYearMonth(yearMonth: string, delta: number): string {

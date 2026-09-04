@@ -34,7 +34,7 @@ export default async function BudgetPage({
       supabase.from('t_budget').select('budget_id, category_id, year_month, amount').eq('year_month', yearMonth),
       // 월별 추이 차트용 — 이번 달 목록과 별개로 최근 6개월치를 금액/날짜/종류만 가볍게 조회.
       supabase.from('t_transaction').select('tx_dt, tx_type, amount').gte('tx_dt', trendStart).lte('tx_dt', end),
-      supabase.from('t_budget_card').select('card_id, name, owner_id').order('created', { ascending: true }),
+      supabase.from('t_budget_card').select('card_id, name, owner_id, owner_name').order('created', { ascending: true }),
       supabase.from('t_user').select('user_id, name'),
     ])
 
@@ -62,6 +62,7 @@ export default async function BudgetPage({
     id: row.card_id,
     name: row.name,
     ownerId: row.owner_id,
+    ownerName: row.owner_name,
   }))
 
   const familyMembers: { userId: string; name: string }[] = (memberRows ?? []).map((row) => ({

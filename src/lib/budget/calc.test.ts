@@ -6,12 +6,13 @@ import {
   collectSubtreeIds,
   currentYearMonthKST,
   expenseBreakdown,
+  expenseByOwner,
   flattenCategoryTree,
   monthlyTotals,
   shiftYearMonth,
   yearMonthRange,
 } from './calc'
-import type { BudgetCategory, BudgetTransaction } from '@/lib/types'
+import type { BudgetCard, BudgetCategory, BudgetTransaction } from '@/lib/types'
 
 describe('calcSavings', () => {
   it('수입에서 지출을 뺀 금액과 저축률을 계산한다', () => {
@@ -175,6 +176,47 @@ describe('expenseBreakdown', () => {
   it('EXPENSE가 아닌 거래는 무시한다', () => {
     const transactions = [tx('2026-09-01', 'INCOME', 'food', 100_000)]
     expect(expenseBreakdown(transactions, categories, 'leaf', 6)).toEqual([])
+  })
+})
+
+function card(id: string, ownerId: string | null, ownerName: string | null = null): BudgetCard {
+  return { id, name: id, ownerId, ownerName }
+}
+
+describe('expenseByOwner', () => {
+  const cards = [card('c-mom', 'u-mom'), card('c-cash', null, '할머니'), card('c-none', null)]
+  const familyMembers = [{ userId: 'u-mom', name: '엄마' }]
+
+  it('가족 구성원 카드는 user: 접두사 id로, 이름은 구성원 이름으로 묶는다', () => {
+    const transactions = [
+      { txType: 'EXPENSE' as const, cardId: 'c-mom', amount: 10_000 },
+      { txType: 'EXPENSE' as const, cardId: 'c-mom', amount: 5_000 },
+    ]
+    expect(expenseByOwner(transactions, cards, familyMembers)).toEqual([
+      { id: 'user:u-mom', name: '엄마', amount: 15_000 },
+    ])
+  })
+
+  it('자유 텍스트 소유자 카드는 text: 접두사 id로 묶는다', () => {
+    const transactions = [{ txType: 'EXPENSE' as const, cardId: 'c-cash', amount: 7_000 }]
+    expect(expenseByOwner(transactions, cards, familyMembers)).toEqual([
+      { id: 'text:할머니', name: '할머니', amount: 7_000 },
+    ])
+  })
+
+  it('소유자 없는 카드/카드 미지정 거래는 __unassigned__로 묶는다', () => {
+    const transactions = [
+      { txType: 'EXPENSE' as const, cardId: 'c-none', amount: 3_000 },
+      { txType: 'EXPENSE' as const, cardId: null, amount: 2_000 },
+    ]
+    expect(expenseByOwner(transactions, cards, familyMembers)).toEqual([
+      { id: '__unassigned__', name: '미지정', amount: 5_000 },
+    ])
+  })
+
+  it('EXPENSE가 아닌 거래는 무시한다', () => {
+    const transactions = [{ txType: 'INCOME' as const, cardId: 'c-mom', amount: 100_000 }]
+    expect(expenseByOwner(transactions, cards, familyMembers)).toEqual([])
   })
 })
 

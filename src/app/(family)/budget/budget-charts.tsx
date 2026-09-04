@@ -5,21 +5,31 @@ import { formatWon } from '@/lib/budget/calc'
 const CHART_COLORS = [
   'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--chart-6)',
 ]
-const OTHER_COLOR = 'var(--ink-soft)'
+export const OTHER_COLOR = 'var(--ink-soft)'
 
 // 지출 비중 도넛 — SVG <circle>에 stroke-dasharray로 부채꼴을 그린다(라이브러리 없음).
 // 조각별 <title>이 네이티브 호버 툴팁 역할(별도 JS 상태 없이 저비용 접근성 확보).
-export function DonutChart({ data }: { data: { id: string; name: string; amount: number }[] }) {
+// colorFor를 넘기면 기본 팔레트 대신 그 색을 쓴다 — 예: 사용자별 차트에서 지출자 배지와 색을 통일.
+export function DonutChart({
+  data,
+  colorFor,
+  ariaLabel = '카테고리별 지출 비중 도넛 차트',
+}: {
+  data: { id: string; name: string; amount: number }[]
+  colorFor?: (id: string, index: number) => string
+  ariaLabel?: string
+}) {
   const total = data.reduce((s, d) => s + d.amount, 0)
   if (total === 0) return <p className="budget-chart-empty">지출 내역이 없어요.</p>
 
+  const color = (id: string, i: number) => colorFor?.(id, i) ?? (id === '__other__' ? OTHER_COLOR : CHART_COLORS[i % CHART_COLORS.length])
   const radius = 60
   const circumference = 2 * Math.PI * radius
   let offset = 0
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-      <svg viewBox="0 0 140 140" width={140} height={140} role="img" aria-label="카테고리별 지출 비중 도넛 차트">
+      <svg viewBox="0 0 140 140" width={140} height={140} role="img" aria-label={ariaLabel}>
         <circle cx={70} cy={70} r={radius} fill="none" stroke="var(--surface-2)" strokeWidth={20} />
         {data.map((d, i) => {
           const fraction = d.amount / total
@@ -31,7 +41,7 @@ export function DonutChart({ data }: { data: { id: string; name: string; amount:
               cy={70}
               r={radius}
               fill="none"
-              stroke={d.id === '__other__' ? OTHER_COLOR : CHART_COLORS[i % CHART_COLORS.length]}
+              stroke={color(d.id, i)}
               strokeWidth={20}
               strokeDasharray={`${dash} ${circumference - dash}`}
               strokeDashoffset={-offset}
@@ -47,7 +57,7 @@ export function DonutChart({ data }: { data: { id: string; name: string; amount:
       <ul className="budget-chart-legend" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
         {data.map((d, i) => (
           <li key={d.id}>
-            <span className="swatch" style={{ background: d.id === '__other__' ? OTHER_COLOR : CHART_COLORS[i % CHART_COLORS.length] }} />
+            <span className="swatch" style={{ background: color(d.id, i) }} />
             {d.name} {formatWon(d.amount)} ({((d.amount / total) * 100).toFixed(1)}%)
           </li>
         ))}

@@ -71,6 +71,7 @@ export type BudgetCard = {
   id: string
   name: string
   ownerId: string | null
+  ownerName: string | null
 }
 
 export type Budget = {

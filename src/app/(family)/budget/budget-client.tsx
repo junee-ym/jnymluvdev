@@ -9,13 +9,14 @@ import {
   collectSubtreeIds,
   currentYearMonthKST,
   expenseBreakdown,
+  expenseByOwner,
   flattenCategoryTree,
   formatWon,
   monthlyTotals,
   shiftYearMonth,
   type CategoryNode,
 } from '@/lib/budget/calc'
-import { BudgetBarChart, DonutChart, TrendChart } from './budget-charts'
+import { BudgetBarChart, DonutChart, OTHER_COLOR, TrendChart } from './budget-charts'
 import { formatDateKey } from '@/lib/calendar/grid'
 import { TAG_COLORS } from '@/lib/calendar/tags'
 import { canModify } from '@/lib/auth/permissions'
@@ -35,6 +36,8 @@ import { useToast } from '@/components/toast-provider'
 const TX_TYPE_LABEL: Record<TxType, string> = { INCOME: '수입', EXPENSE: '지출', SAVING: '저축' }
 const TX_TYPE_COLOR: Record<TxType, string> = { INCOME: 'var(--burgundy)', EXPENSE: 'var(--gold)', SAVING: 'var(--ink-soft)' }
 const EVALUATIONS = ['소비', '낭비', '투자'] as const
+// card-actions.ts와 동일한 값 — 소유자 select에서 "직접 입력"을 골랐다는 표시.
+const CUSTOM_OWNER = '__custom__'
 
 function formatAmountInput(e: ChangeEvent<HTMLInputElement>) {
   const digits = e.target.value.replace(/[^0-9]/g, '')
@@ -85,6 +88,7 @@ export function BudgetClient({
   const [categoryFormParentId, setCategoryFormParentId] = useState('')
   const [cardModalOpen, setCardModalOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<BudgetCard | null>(null)
+  const [cardOwnerMode, setCardOwnerMode] = useState<'member' | 'custom'>('member')
 
   const initialTxState: TransactionFormState = { error: null }
   const [createState, createFormAction, createPending] = useActionState(createTransaction, initialTxState)
@@ -127,6 +131,7 @@ export function BudgetClient({
 
   function openCardForm(card?: BudgetCard) {
     setEditingCard(card ?? null)
+    setCardOwnerMode(card?.ownerName ? 'custom' : 'member')
   }
   function closeCardModal() {
     setCardModalOpen(false)
@@ -236,15 +241,30 @@ export function BudgetClient({
   const memberName = (userId: string) => familyMembers.find((m) => m.userId === userId)?.name ?? null
   // 지출자 배지 = 거래에 쓴 카드. 카드명으로 표시하되 카드 소유자별로 색을 고정한다
   // (familyMembers 배열 내 순서로 팔레트 인덱스를 정해 항상 같은 사람은 같은 색).
-  const ownerColor = (ownerId: string | null) => {
-    const idx = familyMembers.findIndex((m) => m.userId === ownerId)
-    return idx >= 0 ? TAG_COLORS[idx % TAG_COLORS.length] : null
+  // 가족 계정이 없는 소유자는 카드에 직접 입력한 이름(ownerName)을 쓰며, familyMembers 뒤에
+  // 이어 붙는 인덱스로 색을 배정한다(등장하는 자유 텍스트 이름 목록 기준, 카드 생성 순).
+  const freeOwnerNames = Array.from(new Set(cards.map((c) => c.ownerName).filter((n): n is string => !!n)))
+  const ownerColor = (ownerId: string | null, ownerName?: string | null) => {
+    if (ownerId) {
+      const idx = familyMembers.findIndex((m) => m.userId === ownerId)
+      return idx >= 0 ? TAG_COLORS[idx % TAG_COLORS.length] : null
+    }
+    if (ownerName) {
+      return TAG_COLORS[(familyMembers.length + freeOwnerNames.indexOf(ownerName)) % TAG_COLORS.length]
+    }
+    return null
   }
   const payerCard = (tx: BudgetTransaction) => {
     if (tx.txType !== 'EXPENSE' || !tx.cardId) return null
     const card = cards.find((c) => c.id === tx.cardId)
     if (!card) return null
-    return { name: card.name, color: ownerColor(card.ownerId) }
+    return { name: card.name, color: ownerColor(card.ownerId, card.ownerName) }
+  }
+  // expenseByOwner가 반환하는 id("user:"/"text:"/"__unassigned__" 접두사)를 위 ownerColor와 같은 색으로 매핑.
+  const ownerChartColor = (id: string) => {
+    if (id.startsWith('user:')) return ownerColor(id.slice(5), null) ?? OTHER_COLOR
+    if (id.startsWith('text:')) return ownerColor(null, id.slice(5)) ?? OTHER_COLOR
+    return OTHER_COLOR
   }
 
   const expenseTree = buildCategoryTree(categoriesByType('EXPENSE'))
@@ -340,6 +360,15 @@ export function BudgetClient({
                 .filter((row) => row.hasBudget)
                 .sort((a, b) => b.spent - a.spent)
                 .slice(0, 8)}
+            />
+          </div>
+
+          <div className="budget-chart-block">
+            <h3 className="card-title" style={{ margin: 0 }}>사용자별 지출</h3>
+            <DonutChart
+              data={expenseByOwner(transactions, cards, familyMembers)}
+              colorFor={ownerChartColor}
+              ariaLabel="사용자별 지출 비중 도넛 차트"
             />
           </div>
         </div>
@@ -625,7 +654,7 @@ export function BudgetClient({
               {cards.map((card) => (
                 <li key={card.id}>
                   <span className="tag-manage-name">
-                    {card.name}{card.ownerId && ` (${memberName(card.ownerId) ?? ''})`}
+                    {card.name}{(card.ownerId || card.ownerName) && ` (${card.ownerId ? memberName(card.ownerId) ?? '' : card.ownerName})`}
                   </span>
                   <button type="button" className="btn-cancel" onClick={() => openCardForm(card)}>수정</button>
                   <form action={deleteCardFormAction} style={{ display: 'inline' }}>
@@ -653,12 +682,26 @@ export function BudgetClient({
               <label>이름</label>
               <input type="text" name="name" defaultValue={editingCard?.name ?? ''} placeholder="예: 신용카드1, 현금" required />
               <label>소유자 (선택 안 하면 지출자 미표시)</label>
-              <select name="ownerId" defaultValue={editingCard?.ownerId ?? ''}>
+              <select
+                name="ownerId"
+                defaultValue={editingCard?.ownerId ?? (editingCard?.ownerName ? CUSTOM_OWNER : '')}
+                onChange={(e) => setCardOwnerMode(e.target.value === CUSTOM_OWNER ? 'custom' : 'member')}
+              >
                 <option value="">미지정</option>
                 {familyMembers.map((m) => (
                   <option key={m.userId} value={m.userId}>{m.name}</option>
                 ))}
+                <option value={CUSTOM_OWNER}>직접 입력</option>
               </select>
+              {cardOwnerMode === 'custom' && (
+                <input
+                  type="text"
+                  name="ownerName"
+                  defaultValue={editingCard?.ownerName ?? ''}
+                  placeholder="이름 직접 입력 (예: 할머니)"
+                  style={{ marginTop: 6 }}
+                />
+              )}
               {(createCardState.error || updateCardState.error) && (
                 <p style={{ color: 'var(--danger)', fontSize: 12 }}>{createCardState.error ?? updateCardState.error}</p>
               )}
