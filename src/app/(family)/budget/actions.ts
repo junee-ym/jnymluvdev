@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requireProfile } from '@/lib/auth/session'
 import { canModify } from '@/lib/auth/permissions'
 import { createClient } from '@/lib/supabase/server'
+import { parseAmount } from '@/lib/budget/calc'
 
 export type TransactionFormState = { error: string | null }
 
@@ -17,7 +18,7 @@ export async function createTransaction(
   const date = String(formData.get('date') ?? '')
   const txType = String(formData.get('txType') ?? '')
   const categoryId = String(formData.get('categoryId') ?? '')
-  const amount = Number(formData.get('amount') ?? 0)
+  const amount = parseAmount(formData.get('amount'))
   const fixed = formData.get('fixed') === 'on'
   const cardId = String(formData.get('cardId') ?? '').trim() || null
   const evaluation = String(formData.get('evaluation') ?? '').trim() || null
@@ -66,7 +67,7 @@ export async function updateTransaction(
   const date = String(formData.get('date') ?? '')
   const txType = String(formData.get('txType') ?? '')
   const categoryId = String(formData.get('categoryId') ?? '')
-  const amount = Number(formData.get('amount') ?? 0)
+  const amount = parseAmount(formData.get('amount'))
   const fixed = formData.get('fixed') === 'on'
   const cardId = String(formData.get('cardId') ?? '').trim() || null
   const evaluation = String(formData.get('evaluation') ?? '').trim() || null

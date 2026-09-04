@@ -4,6 +4,11 @@ export function formatWon(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
 }
 
+// 금액 입력창은 콤마(1,000)를 표시해주므로 서버에서 숫자로 바꿀 때 콤마를 지운다.
+export function parseAmount(value: FormDataEntryValue | null): number {
+  return Number(String(value ?? '').replace(/,/g, ''))
+}
+
 export function calcSavings(totalIncome: number, totalExpense: number): { amount: number; rate: number } {
   const amount = totalIncome - totalExpense
   const rate = totalIncome > 0 ? (amount / totalIncome) * 100 : 0

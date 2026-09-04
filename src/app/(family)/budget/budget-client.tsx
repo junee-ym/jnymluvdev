@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import Link from 'next/link'
 import {
   buildCategoryTree,
@@ -35,6 +35,11 @@ import { useToast } from '@/components/toast-provider'
 const TX_TYPE_LABEL: Record<TxType, string> = { INCOME: '수입', EXPENSE: '지출', SAVING: '저축' }
 const TX_TYPE_COLOR: Record<TxType, string> = { INCOME: 'var(--burgundy)', EXPENSE: 'var(--gold)', SAVING: 'var(--ink-soft)' }
 const EVALUATIONS = ['소비', '낭비', '투자'] as const
+
+function formatAmountInput(e: ChangeEvent<HTMLInputElement>) {
+  const digits = e.target.value.replace(/[^0-9]/g, '')
+  e.target.value = digits ? Number(digits).toLocaleString('ko-KR') : ''
+}
 
 function findNode(nodes: CategoryNode[], id: string): CategoryNode | null {
   for (const node of nodes) {
@@ -397,12 +402,19 @@ export function BudgetClient({
             <b>{formatWon(row.spent)} / {formatWon(row.budgetAmount)}</b>
           </div>
           <div className="budget-bar">
-            <div className="budget-fill" style={{ width: `${Math.min(row.usage, 100)}%` }} />
+            <div className={`budget-fill${row.usage > 100 ? ' over' : ''}`} style={{ width: `${Math.min(row.usage, 100)}%` }} />
           </div>
           <form action={budgetFormAction} style={{ display: 'flex', gap: 8, marginTop: 4 }}>
             <input type="hidden" name="categoryId" value={row.id} />
             <input type="hidden" name="yearMonth" value={yearMonth} />
-            <input type="number" name="amount" min={0} defaultValue={row.budgetAmount} style={{ width: 120 }} />
+            <input
+              type="text"
+              inputMode="numeric"
+              name="amount"
+              defaultValue={row.budgetAmount.toLocaleString('ko-KR')}
+              onChange={formatAmountInput}
+              style={{ width: 120 }}
+            />
             <button type="submit" className="btn-cancel" disabled={budgetPending}>예산 저장</button>
           </form>
         </div>
@@ -418,7 +430,15 @@ export function BudgetClient({
           ))}
         </select>
         <input type="hidden" name="yearMonth" value={yearMonth} />
-        <input type="number" name="amount" min={0} placeholder="예산 금액" style={{ width: 120 }} required />
+        <input
+          type="text"
+          inputMode="numeric"
+          name="amount"
+          placeholder="예산 금액"
+          onChange={formatAmountInput}
+          style={{ width: 120 }}
+          required
+        />
         <button type="submit" className="btn-cancel" disabled={budgetPending}>예산 추가</button>
       </form>
 
@@ -451,7 +471,14 @@ export function BudgetClient({
                 ))}
               </select>
               <label>금액</label>
-              <input type="number" name="amount" min={1} defaultValue={editingTx?.amount ?? ''} required />
+              <input
+                type="text"
+                inputMode="numeric"
+                name="amount"
+                defaultValue={editingTx ? editingTx.amount.toLocaleString('ko-KR') : ''}
+                onChange={formatAmountInput}
+                required
+              />
               <label>
                 <input type="checkbox" name="fixed" defaultChecked={editingTx?.fixed ?? false} /> 고정 지출/수입
               </label>

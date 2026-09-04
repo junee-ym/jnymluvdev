@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireProfile } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
+import { parseAmount } from '@/lib/budget/calc'
 
 export type CategoryFormState = { error: string | null }
 
@@ -75,7 +76,7 @@ export async function setBudget(
   await requireProfile()
   const categoryId = String(formData.get('categoryId') ?? '')
   const yearMonth = String(formData.get('yearMonth') ?? '')
-  const amount = Number(formData.get('amount') ?? 0)
+  const amount = parseAmount(formData.get('amount'))
 
   if (!categoryId || !yearMonth || !(amount >= 0)) {
     return { error: '카테고리와 예산 금액을 확인해주세요' }
