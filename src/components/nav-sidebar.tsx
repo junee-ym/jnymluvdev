@@ -10,16 +10,18 @@ import type { Profile } from '@/lib/types'
 
 // One UI List 컴포넌트 가이드: "관련 항목을 시각적으로 묶을 때 subheader 사용" —
 // 실사용 가능한 메뉴와 준비중인 메뉴를 subheader로 분리해 나열(docs/design/DESIGN-samsung.md 참고).
+// 이모지 대신 기하학적 사각형 계열(Unicode Geometric Shapes)로 통일 —
+// 플랫폼별 컬러 이모지 폰트에 좌우되지 않는 단조로운 모노톤 아이콘.
 const NAV_ITEMS = [
   { href: '/', label: '대시보드', icon: '▦' },
-  { href: '/calendar', label: '달력', icon: '📅' },
-  { href: '/album', label: '앨범', icon: '🖼' },
-  { href: '/budget', label: '가계부', icon: '💳' },
+  { href: '/calendar', label: '달력', icon: '▤' },
+  { href: '/album', label: '앨범', icon: '▧' },
+  { href: '/budget', label: '가계부', icon: '▥' },
 ]
 const NAV_ITEMS_SOON = [
-  { href: '/fridge', label: '냉장고', icon: '❄︎' },
-  { href: '/trip', label: '여행일기', icon: '✈' },
-  { href: '/board', label: '게시판', icon: '🗒' },
+  { href: '/fridge', label: '냉장고', icon: '▢' },
+  { href: '/trip', label: '여행일기', icon: '▨' },
+  { href: '/board', label: '게시판', icon: '▣' },
 ]
 
 const initialInviteState: InviteState = { error: null, success: null }
