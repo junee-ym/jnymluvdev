@@ -27,7 +27,7 @@ export function RecentAlbum({ photos, profile }: { photos: Photo[]; profile: Pro
         <div className="album-track" ref={trackRef}>
           {photos.map((photo) => (
             <div className="ph" key={photo.id} onClick={() => setLightboxPhoto(photo)} style={{ cursor: 'pointer' }}>
-              <img src={photo.signedUrl} alt={photo.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src={photo.thumbnailUrl} alt={photo.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               <span className="ph-date">{formatDateKR(photo.date)}</span>
               {photo.location && <span className="ph-loc">{photo.location}</span>}
             </div>

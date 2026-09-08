@@ -15,15 +15,17 @@ export async function savePhotoMeta(
 ): Promise<PhotoFormState> {
   const profile = await requireProfile()
   const path = String(formData.get('path') ?? '')
+  const thumbPathRaw = formData.get('thumbPath')
+  const thumbPath = thumbPathRaw ? String(thumbPathRaw) : null
   const date = String(formData.get('date') ?? '')
 
   if (!path || !date) {
     return { error: '사진 정보가 올바르지 않아요' }
   }
 
-  // path는 클라이언트가 보낸 값이다. 업로드는 항상 `<본인 user_id>/...` 경로로
-  // 이루어지므로, 남의 폴더(또는 임의 경로)를 자기 사진으로 등록하지 못하게 막는다.
-  if (!path.startsWith(`${profile.userId}/`)) {
+  // path/thumbPath는 클라이언트가 보낸 값이다. 업로드는 항상 `<본인 user_id>/...`
+  // 경로로 이루어지므로, 남의 폴더(또는 임의 경로)를 자기 사진으로 등록하지 못하게 막는다.
+  if (!path.startsWith(`${profile.userId}/`) || (thumbPath && !thumbPath.startsWith(`${profile.userId}/`))) {
     return { error: '사진 정보가 올바르지 않아요' }
   }
 
@@ -39,6 +41,7 @@ export async function savePhotoMeta(
   const { error } = await supabase.from('t_photo').insert({
     taken_dt: date,
     strpath: path,
+    thumb_path: thumbPath,
     user_id: profile.userId,
     locatn,
   })
@@ -95,7 +98,7 @@ export async function deletePhoto(
   // 지울 수 있는 임의 삭제 통로가 된다.
   const { data: existing } = await supabase
     .from('t_photo')
-    .select('user_id, strpath')
+    .select('user_id, strpath, thumb_path')
     .eq('photo_id', photoId)
     .single()
 
@@ -103,7 +106,8 @@ export async function deletePhoto(
     return { error: '삭제 권한이 없어요' }
   }
 
-  const { error: removeError } = await supabase.storage.from('photos').remove([existing.strpath])
+  const removePaths = [existing.strpath, existing.thumb_path].filter((p): p is string => !!p)
+  const { error: removeError } = await supabase.storage.from('photos').remove(removePaths)
   if (removeError) return { error: '사진 삭제에 실패했어요' }
 
   const { error } = await supabase.from('t_photo').delete().eq('photo_id', photoId)

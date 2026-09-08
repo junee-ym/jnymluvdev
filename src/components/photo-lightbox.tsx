@@ -178,7 +178,7 @@ export function PhotoLightbox({ photo, profile, onClose }: { photo: Photo; profi
       <div className="lightbox">
         <img
           className="lightbox-img"
-          src={photo.signedUrl}
+          src={photo.thumbnailUrl}
           alt=""
           onClick={() => setShowFull(true)}
           style={{ cursor: 'zoom-in' }}

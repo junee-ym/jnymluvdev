@@ -36,7 +36,7 @@ export default async function DashboardPage() {
         .lte('event_dt', weekEnd),
       supabase
         .from('t_photo')
-        .select('photo_id, taken_dt, locatn, caption, strpath, user_id, created, t_comment(comment_id, content, created, user_id, t_user(name))')
+        .select('photo_id, taken_dt, locatn, caption, strpath, thumb_path, user_id, created, t_comment(comment_id, content, created, user_id, t_user(name))')
         .order('taken_dt', { ascending: false })
         .limit(10),
       supabase

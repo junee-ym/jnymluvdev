@@ -16,6 +16,7 @@ type PhotoRow = {
   locatn: string | null
   caption: string | null
   strpath: string
+  thumb_path: string | null
   user_id: string
   created: string
   t_comment?: CommentRow[] | null
@@ -30,6 +31,11 @@ export async function toSignedPhotos(
       const { data: signed } = await supabase.storage
         .from('photos')
         .createSignedUrl(row.strpath, 3600)
+
+      // thumb_path 없는 옛날 사진(마이그레이션 이전 업로드)은 원본을 그대로 쓴다.
+      const { data: signedThumb } = row.thumb_path
+        ? await supabase.storage.from('photos').createSignedUrl(row.thumb_path, 3600)
+        : { data: null }
 
       const comments = (row.t_comment ?? [])
         .map((c) => {
@@ -53,6 +59,7 @@ export async function toSignedPhotos(
         caption: row.caption,
         userId: row.user_id,
         signedUrl: signed?.signedUrl ?? '',
+        thumbnailUrl: signedThumb?.signedUrl ?? signed?.signedUrl ?? '',
         comments,
       }
     })
