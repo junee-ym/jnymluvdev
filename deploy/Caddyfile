@@ -1,0 +1,9 @@
+{$SITE_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+# Supabase API(Auth/REST/Storage) 게이트웨이 = kong
+{$API_DOMAIN} {
+	reverse_proxy kong:8000
+}

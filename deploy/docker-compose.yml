@@ -1,0 +1,38 @@
+# 앱 + Caddy. Supabase는 공식 docker compose(~/supabase/docker)를 별도로 띄우고
+# 같은 외부 네트워크 "family"에 kong 컨테이너를 붙여 연결한다. (deploy/README.md 참고)
+services:
+  web:
+    build:
+      context: ..
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+    restart: unless-stopped
+    environment:
+      # 서버 내부에서는 kong으로 직접 붙어 외부 왕복을 줄이고 싶으면 사용(선택)
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      HOLIDAY_API_SERVICE_KEY: ${HOLIDAY_API_SERVICE_KEY:-}
+    networks: [family]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+    networks: [family]
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  family:
+    external: true
